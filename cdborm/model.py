@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 from CodernityDB.database import PreconditionsException, IndexException
 from copy import copy
+from cdborm.fields import BaseField
+from cdborm.errors import BadType
 
 class Model(object):
     database = None
@@ -52,11 +54,14 @@ class Model(object):
 
     @property
     def id(self):
-        return self._id
+        try:
+            return self['_id']
+        except KeyError:
+            return None
 
     def _from_dict_1(self, data):
         for name, value in data.items():
-            setattr(self, name, value)
+            self._data[name] = value
 
     def _from_dict(self, data):
         if data['_type'] != self._get_full_class_name():
@@ -69,14 +74,15 @@ class Model(object):
                 '_type' : self._get_full_class_name(),
                 '_type_version' : self._type_version,
             }
+            return data
         def initDataIfAlreadySaved(data):
             try:
-                data['_id'] = self._id
-                data['_rev'] = self._rev
-            except AttributeError:
+                data['_id'] = self['_id']
+                data['_rev'] = self['_rev']
+            except KeyError:
                 pass
         def setData(data):
-            for name in self._elements:
+            for name in self._data:
                 try:
                     data[name] = getattr(self, name)
                 except AttributeError:
@@ -95,9 +101,9 @@ class Model(object):
                 return db.insert(data)
         def update_object_from_returned_data(data):
             for name, value in data.items():
-                setattr(self, name, value)
+                self._data[name] = value
         def update_own_cache():
-            self.cache[self._id] = self
+            self.cache[self['_id']] = self
         #-----------------------------------------------------------------------
         db = self._get_database(database)
         data = self._to_dict()
@@ -110,7 +116,7 @@ class Model(object):
         if database:
             return database
         else:
-            return self.database
+            return cls.database
 
     @classmethod
     def _get_full_class_name(cls):
@@ -131,7 +137,7 @@ class Model(object):
                 cls.updateCacheFromDatabase(_id, db)
         def checkType():
             if cls != type(cls.cache[_id]):
-                raise RuntimeError('bad type')
+                raise BadType()
         def getObjectFromCache():
             return cls.cache[_id]
         #-----------------------------------------------------------------------

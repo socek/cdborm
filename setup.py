@@ -19,7 +19,4 @@ if __name__ == '__main__':
         install_requires=install_requires,
         dependency_links=dependency_links,
         test_suite = 'cdborm.tests.get_all_test_suite',
-        package_data = {'CodernityDB-orm' : [
-            'cdborm/tests/tmpl/*.tpl',
-        ]},
     )
