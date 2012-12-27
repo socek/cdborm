@@ -1,5 +1,11 @@
-class BaseField(object):
+from cdborm.errors import FieldCanNotBeNull
+class Field(object):
     _value = None
+
+    def __init__(self, value=None, nullable=True):
+        self._nullable = nullable
+        if value:
+            self.value = value
 
     @property
     def value(self):
@@ -10,13 +16,37 @@ class BaseField(object):
 
     @value.setter
     def value(self, value):
-        self._setter(value)
+        if self._nullable and value == None:
+            self._value = None
+        else:
+            if value == None:
+                raise FieldCanNotBeNull()
+            else:
+                self._setter(value)
 
     def _setter(self, value):
         self._value = value
 
-class NormalField(BaseField): pass
+    def validate(self):
+        if self._nullable == False and self._value == None:
+            return (False, 'This field can not be null!')
+        return (True, None)
 
-class IntField(BaseField):
+class StringField(Field):
+
+    def _setter(self, value):
+        if type(value) == unicode:
+            return text
+        elif type(text) == str:
+            return text.decode('utf8')
+        else:
+            raise ValueError(u'Value must be a string or unicode!')
+
+class IntField(Field):
     def _setter(self, value):
         self._value = int(value)
+
+class IdField(Field): pass
+class RevField(Field): pass
+class TypeVersionField(IntField): pass
+class TypeField(Field): pass

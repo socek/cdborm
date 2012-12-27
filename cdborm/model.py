@@ -1,8 +1,10 @@
 # -*- encoding: utf-8 -*-
 from CodernityDB.database import PreconditionsException, IndexException
 from copy import copy
-from cdborm.fields import BaseField
-from cdborm.errors import BadType
+from cdborm.fields import Field, IdField, RevField, TypeField, TypeVersionField
+from cdborm.errors import BadType, FieldValidationError
+
+_special_data = ['_data', '_type_version', '_get_full_class_name']
 
 class Model(object):
     database = None
@@ -11,11 +13,16 @@ class Model(object):
 
     def __init__(self, *args, **kwargs):
         def initVars():
-            self._data = {}
+            self._data = {
+                '_id' : IdField(),
+                '_rev' : RevField(),
+                '_type_version' : TypeVersionField(self._type_version),
+                '_type' : TypeField(self._get_full_class_name()),
+            }
         def copyFieldsInstances():
             for name in dir(self):
                 value = getattr(self, name)
-                if issubclass(value.__class__, BaseField):
+                if issubclass(value.__class__, Field):
                     self._data[name] = copy(value)
         def setFields():
             for key, value in kwargs.items():
@@ -27,7 +34,7 @@ class Model(object):
 
     def __getattribute__(self, name):
         #we need access to _data always
-        if name in ['_data']:
+        if name in _special_data:
             return super(Model, self).__getattribute__(name)
 
         #if name in _data dict, then it means we want value from element in _data
@@ -39,7 +46,7 @@ class Model(object):
 
     def __setattr__(self, name, value):
         #we need access to _data always
-        if name in ['_data']:
+        if name in _special_data:
             super(Model, self).__setattr__(name, value)
 
         #if name in _data dict, then it means we want to set value from element in _data
@@ -55,42 +62,39 @@ class Model(object):
     @property
     def id(self):
         try:
-            return self['_id']
+            return self['_id'].value
         except KeyError:
             return None
 
     def _from_dict_1(self, data):
         for name, value in data.items():
-            self._data[name] = value
+            self._data[name].value = value
 
     def _from_dict(self, data):
+        if data['_type'] == None:
+            raise RuntimeError('hello!')
         if data['_type'] != self._get_full_class_name():
-            raise RuntimeError('Wrong type!')
+            raise BadType()
         getattr(self, '_from_dict_' + str(data['_type_version']))(data)
 
     def _to_dict(self):
-        def defaultData():
-            data = {
-                '_type' : self._get_full_class_name(),
-                '_type_version' : self._type_version,
-            }
-            return data
-        def initDataIfAlreadySaved(data):
-            try:
-                data['_id'] = self['_id']
-                data['_rev'] = self['_rev']
-            except KeyError:
-                pass
+        def validateFields():
+            for name, var in self._data.items():
+                ret = var.validate()
+                if not ret[0]:
+                    raise FieldValidationError(self._get_full_class_name(), name, ret[1])
+        def setType(data):
+            data['_type'] = self._get_full_class_name()
+            data['_type_version'] = self._type_version
         def setData(data):
-            for name in self._data:
-                try:
-                    data[name] = getattr(self, name)
-                except AttributeError:
-                    data[name] = None
+            for name, var in self._data.items():
+                if var.value != None:
+                    data[name] = var.value
         #-----------------------------------------------------------------------
-        data = defaultData()
-        initDataIfAlreadySaved(data)
+        validateFields()
+        data = {}
         setData(data)
+        setType(data)
         return data
 
     def save(self, database=None):
@@ -101,9 +105,9 @@ class Model(object):
                 return db.insert(data)
         def update_object_from_returned_data(data):
             for name, value in data.items():
-                self._data[name] = value
+                self._data[name].value = value
         def update_own_cache():
-            self.cache[self['_id']] = self
+            self.cache[self.id] = self
         #-----------------------------------------------------------------------
         db = self._get_database(database)
         data = self._to_dict()

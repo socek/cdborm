@@ -31,7 +31,7 @@ class ModelTest(CdbOrmTestCase):
         self.assertEqual(second_obj.id, obj.id)
         self.assertEqual(id(second_obj), id(obj))
 
-    def test_without_cache(self):
+    def test_get_without_cache(self):
         obj = MyModel()
         obj.save()
 
@@ -48,3 +48,34 @@ class ModelTest(CdbOrmTestCase):
         obj2.save()
 
         self.assertRaises(BadType, MyModel.get, (obj2.id))
+
+    def test_all(self):
+        self.assertEqual([], MyModel.all())
+
+        obj = MyModel()
+        obj.save()
+        self.assertEqual([obj], MyModel.all())
+
+        obj2 = MyModel()
+        obj2.save()
+        self.assertEqual([obj, obj2], MyModel.all())
+
+        obj3 = MyModel()
+        obj3.save()
+        self.assertEqual([obj, obj2, obj3], MyModel.all())
+
+    def test_all_without_cache(self):
+        self.assertEqual([], MyModel.all())
+
+        obj = MyModel()
+        obj.save()
+        obj2 = MyModel()
+        obj2.save()
+        obj3 = MyModel()
+        obj3.save()
+
+        Model.cache = {}
+
+        data = [obj.id, obj2.id, obj3.id]
+        all_elements = [ obj.id for obj in MyModel.all() ]
+        self.assertEqual(data, all_elements)
