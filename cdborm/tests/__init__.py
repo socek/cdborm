@@ -2,10 +2,12 @@ import unittest
 import logging
 from . import model
 from . import intfield
+from . import stringfield
 
 all_test_cases = [
     model.ModelTest,
     intfield.IntFieldTest,
+    stringfield.StringFieldTest,
 ]
 
 def get_all_test_suite():
