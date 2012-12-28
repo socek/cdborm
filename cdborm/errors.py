@@ -11,3 +11,5 @@ class FieldValidationError(Exception):
         return u'Model: "%s" Field: "%s": %s' %(self.model_name,
                                                 self.field_name,
                                                 self.error_message)
+
+class CanNotOverwriteRelationVariable(Exception): pass

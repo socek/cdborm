@@ -2,9 +2,10 @@
 from CodernityDB.database import PreconditionsException, IndexException
 from copy import copy
 from cdborm.fields import Field, IdField, RevField, TypeField, TypeVersionField
-from cdborm.errors import BadType, FieldValidationError
+from cdborm.errors import BadType, FieldValidationError, CanNotOverwriteRelationVariable
+from cdborm.relation import Relation
 
-_special_data = ['_data', '_type_version', '_get_full_class_name']
+_special_data = ['_data', '_type_version', '_get_full_class_name', '_relations']
 
 class Model(object):
     database = None
@@ -19,11 +20,14 @@ class Model(object):
                 '_type_version' : TypeVersionField(self._type_version),
                 '_type' : TypeField(self._get_full_class_name()),
             }
+            self._relations = {}
         def copyFieldsInstances():
             for name in dir(self):
                 value = getattr(self, name)
                 if issubclass(value.__class__, Field):
                     self._data[name] = copy(value)
+                if issubclass(value.__class__, Relation):
+                    self._relations[name] = copy(value)
         def setFields():
             for key, value in kwargs.items():
                 self[key].value = value
@@ -40,11 +44,19 @@ class Model(object):
         #if name in _data dict, then it means we want value from element in _data
         if name in self._data:
             return self._data[name].value
+        elif name in self._relations:
+            return self._relations[name]
         #else we need normal attribute from instance
         else:
             return super(Model, self).__getattribute__(name)
 
     def __setattr__(self, name, value):
+        def isNameInRelations(name):
+            try:
+                return name in self._relations
+            except AttributeError:
+                return False
+        #-----------------------------------------------------------------------
         #we need access to _data always
         if name in _special_data:
             super(Model, self).__setattr__(name, value)
@@ -52,6 +64,8 @@ class Model(object):
         #if name in _data dict, then it means we want to set value from element in _data
         if name in self._data:
             self._data[name].value = value
+        elif isNameInRelations(name):
+            raise CanNotOverwriteRelationVariable()
         #else we need normal attribute from instance
         else:
             return super(Model, self).__setattr__(name, value)
@@ -68,11 +82,12 @@ class Model(object):
 
     def _from_dict_1(self, data):
         for name, value in data.items():
-            self._data[name].value = value
+            if name.startswith('_relation_'):
+                self._relation[name].value = value
+            else:
+                self._data[name].value = value
 
     def _from_dict(self, data):
-        if data['_type'] == None:
-            raise RuntimeError('hello!')
         if data['_type'] != self._get_full_class_name():
             raise BadType()
         getattr(self, '_from_dict_' + str(data['_type_version']))(data)
@@ -90,6 +105,10 @@ class Model(object):
             for name, var in self._data.items():
                 if var.value != None:
                     data[name] = var.value
+        def setRelation(data):
+            for name, var in self._relations.items():
+                if var.value != None:
+                    data['_relation_' + name] = var.value
         #-----------------------------------------------------------------------
         validateFields()
         data = {}

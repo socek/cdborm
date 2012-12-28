@@ -1,13 +1,15 @@
 import unittest
 import logging
-from . import model
-from . import intfield
-from . import stringfield
+from .model import ModelTest
+from .intfield import IntFieldTest
+from .stringfield import StringFieldTest
+from .one_to_one_relation import OneToOneRelationTest
 
 all_test_cases = [
-    model.ModelTest,
-    intfield.IntFieldTest,
-    stringfield.StringFieldTest,
+    ModelTest,
+    IntFieldTest,
+    StringFieldTest,
+    OneToOneRelationTest,
 ]
 
 def get_all_test_suite():
