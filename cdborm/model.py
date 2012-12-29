@@ -28,6 +28,7 @@ class Model(object):
                     self._data[name] = copy(value)
                 if issubclass(value.__class__, Relation):
                     self._relations[name] = copy(value)
+                    self._relations[name].parent = self
         def setFields():
             for key, value in kwargs.items():
                 self[key].value = value
@@ -114,6 +115,7 @@ class Model(object):
         data = {}
         setData(data)
         setType(data)
+        setRelation(data)
         return data
 
     def save(self, database=None):
@@ -177,3 +179,9 @@ class Model(object):
         for element in db.all(cls._get_full_class_name()):
             data.append(cls.get(element['_id']))
         return data
+
+    @classmethod
+    def get_class_by_name(cls, name):
+        for subcls in Model.__subclasses__():
+            if subcls._get_full_class_name() == name:
+                return subcls

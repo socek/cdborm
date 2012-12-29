@@ -13,3 +13,4 @@ class FieldValidationError(Exception):
                                                 self.error_message)
 
 class CanNotOverwriteRelationVariable(Exception): pass
+class AlreadyAssigned(Exception): pass
