@@ -46,7 +46,7 @@ class OneToOneRelationTest(CdbOrmTestCase):
         self.assertEqual(one.second(), second)
         self.assertEqual(second.first(), one)
 
-    def test_assign_double_assign_fail(self):
+    def test_double_assign(self):
         second = MyOtOModel_2()
         second.save()
 

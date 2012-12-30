@@ -4,12 +4,14 @@ from .model import ModelTest
 from .intfield import IntFieldTest
 from .stringfield import StringFieldTest
 from .one_to_one_relation import OneToOneRelationTest
+from .one_to_many_relation import OneToManyRelationTest
 
 all_test_cases = [
     ModelTest,
     IntFieldTest,
     StringFieldTest,
     OneToOneRelationTest,
+    OneToManyRelationTest,
 ]
 
 def get_all_test_suite():

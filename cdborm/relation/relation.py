@@ -9,8 +9,7 @@ class Relation(object):
 
     @property
     def related_class(self):
-        from cdborm.model import Model
-        return Model.get_class_by_name(self.class_name)
+        return self.parent.get_class_by_name(self.class_name)
 
 class ForeignRelation(Relation):
     foreign = True
