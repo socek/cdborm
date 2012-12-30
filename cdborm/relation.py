@@ -1,19 +1,23 @@
 from cdborm.errors import BadType, AlreadyAssigned
 
 class Relation(object):
-    def __init__(self):
+    foreign = False
+
+    def __init__(self, class_name, index_name):
         self.parent = None
         self.value = None
-
-class OneToOne(Relation):
-    def __init__(self, class_name, index_name):
-        super(OneToOne, self).__init__()
         self.class_name = class_name
         self.index_name = index_name
 
-    def assign(self, obj, database=None):
+    @property
+    def related_class(self):
         from cdborm.model import Model
-        cls = Model.get_class_by_name(self.class_name)
+        return Model.get_class_by_name(self.class_name)
+
+class OneToOne(Relation):
+
+    def assign(self, obj, database=None):
+        cls = self.related_class
         if type(obj) == cls:
             db = self.parent._get_database(database)
             if len(list(db.get_many(self.index_name, obj.id))) > 0:
@@ -26,28 +30,26 @@ class OneToOne(Relation):
         self.value = None
 
     def __call__(self, database=None):
-        from cdborm.model import Model
-        cls = Model.get_class_by_name(self.class_name)
+        cls = self.related_class
         if self.value:
             db = cls._get_database(database)
             return cls.get(self.value, database)
         else:
             return None
 
-class OneToOneForeign(Relation):
-    def __init__(self, class_name, index_name):
-        super(OneToOneForeign, self).__init__()
-        self.index_name = index_name
-        self.class_name = class_name
+class ForeignRelation(Relation):
+    foreign = True
+
+class OneToOneForeign(ForeignRelation):
 
     def __call__(self, database=None):
-        from cdborm.model import Model
         def getIdOfRelatedObject(db):
             generator = db.get_many(self.index_name, self.parent.id)
             try:
                 all_elements = list(generator)
             except TypeError:
                 raise RuntimeError('No element found')
+
             if len(all_elements) > 0:
                 return all_elements[0]['_id']
             else:
@@ -56,7 +58,7 @@ class OneToOneForeign(Relation):
         db = self.parent._get_database(database)
         try:
             _id = getIdOfRelatedObject(db)
-            cls = Model.get_class_by_name(self.class_name)
+            cls = self.related_class
             return cls.get(_id)
         except RuntimeError:
             return None

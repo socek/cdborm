@@ -17,7 +17,7 @@ class MyOtOModel_1Index(BaseIndex):
 @Index('MyOtOModel_1Foreign')
 class MyOtOModel_1ForeginIndex(BaseIndex):
     clsName = 'MyOtOModel_1'
-    key = '_relation_second'
+    relation_key = 'second'
 
 @Index('MyOtOModel_2')
 class MyOtOModel_2Index(BaseIndex):
