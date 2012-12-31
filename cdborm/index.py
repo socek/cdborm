@@ -46,7 +46,23 @@ class BaseIndex(HashIndex):
             else:
                 return self.make_key(val), None
 
-        return self.make_key(val), None
-
     def make_key(self, key):
-        return str(key[0:20].ljust(20, '\0'))
+        if key:
+            return str(key[0:20].ljust(20, '\0'))
+        else:
+            return ' ' * 20
+
+class LinkIndex(BaseIndex):
+    custom_header = 'from cdborm.index import BaseIndex, LinkIndex'
+    clsName = 'relation link'
+
+    def make_key_value(self, data):
+        val = data.get('_type')
+        if val is None or val != self.clsName:
+            return None
+        else:
+            if self._key():
+                val = self.make_key(data.get(self._key()))
+                return self.make_key(val), None
+            else:
+                return self.make_key(val), None

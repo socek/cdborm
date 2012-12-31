@@ -1,9 +1,9 @@
-from cdborm.errors import BadType, AlreadyAssigned
-from cdborm.relation.relation import Relation, ForeignRelation
+from cdborm.errors import BadType
+from cdborm.relation.relation import LocalRelation, ForeignRelation
 
-class OneToMany(Relation):
+class OneToMany(LocalRelation):
 
-    def assign(self, obj, database=None):
+    def assign(self, obj):
         cls = self.related_class
         if type(obj) == cls:
             self.value = obj.id

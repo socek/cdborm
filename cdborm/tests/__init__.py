@@ -5,6 +5,7 @@ from .intfield import IntFieldTest
 from .stringfield import StringFieldTest
 from .one_to_one_relation import OneToOneRelationTest
 from .one_to_many_relation import OneToManyRelationTest
+from .many_to_many_relation import ManyToManyRelationTest
 
 all_test_cases = [
     ModelTest,
@@ -12,6 +13,7 @@ all_test_cases = [
     StringFieldTest,
     OneToOneRelationTest,
     OneToManyRelationTest,
+    ManyToManyRelationTest,
 ]
 
 def get_all_test_suite():

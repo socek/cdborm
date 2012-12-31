@@ -79,3 +79,14 @@ class ModelTest(CdbOrmTestCase):
         data = [obj.id, obj2.id, obj3.id]
         all_elements = [ obj.id for obj in MyModel.all() ]
         self.assertEqual(data, all_elements)
+
+    def test_remove(self):
+        self.assertEqual([], MyModel.all())
+
+        obj = MyModel()
+        obj.save()
+
+        self.assertEqual([obj], MyModel.all())
+
+        obj.delete()
+        self.assertEqual([], MyModel.all())

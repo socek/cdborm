@@ -2,7 +2,7 @@ from .base import CdbOrmTestCase
 from cdborm.model import Model
 from cdborm.index import BaseIndex, Index
 from cdborm.relation import OneToMany, OneToManyList
-from cdborm.errors import CanNotOverwriteRelationVariable, AlreadyAssigned
+from cdborm.errors import CanNotOverwriteRelationVariable
 
 class MyOtMModel_(Model):
     first = OneToManyList('MyOtMModel_1', 'MyOtMModel_1Foreign')

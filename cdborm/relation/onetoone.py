@@ -1,7 +1,7 @@
 from cdborm.errors import BadType, AlreadyAssigned
-from cdborm.relation.relation import Relation, ForeignRelation
+from cdborm.relation.relation import LocalRelation, ForeignRelation
 
-class OneToOne(Relation):
+class OneToOne(LocalRelation):
 
     def assign(self, obj, database=None):
         cls = self.related_class

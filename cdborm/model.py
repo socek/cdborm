@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 from CodernityDB.database import PreconditionsException, IndexException
-from copy import copy
+from copy import deepcopy
 from cdborm.fields import Field, IdField, RevField, TypeField, TypeVersionField
 from cdborm.errors import BadType, FieldValidationError, CanNotOverwriteRelationVariable
 from cdborm.relation import Relation
@@ -25,9 +25,9 @@ class Model(object):
             for name in dir(self):
                 value = getattr(self, name)
                 if issubclass(value.__class__, Field):
-                    self._data[name] = copy(value)
+                    self._data[name] = deepcopy(value)
                 if issubclass(value.__class__, Relation):
-                    self._relations[name] = copy(value)
+                    self._relations[name] = deepcopy(value)
                     self._relations[name].parent = self
         def setFields():
             for key, value in kwargs.items():
@@ -134,12 +134,20 @@ class Model(object):
                 self._data[name].value = value
         def update_own_cache():
             self.cache[self.id] = self
+        def save_relation_data(db):
+            for name, var in self._relations.items():
+                var._on_save(db)
         #-----------------------------------------------------------------------
         db = self._get_database(database)
         data = self._to_dict()
         returned_data = insert_or_update(data, db)
         update_object_from_returned_data(returned_data)
         update_own_cache()
+        save_relation_data(db)
+
+    def delete(self, database=None):
+        db = self._get_database(database)
+        db.delete(self._to_dict())
 
     @classmethod
     def _get_database(cls, database=None):
