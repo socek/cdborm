@@ -108,12 +108,7 @@ class Model(object):
                     data[name] = var.value
         def setRelation(data):
             for name, var in self._relations.items():
-                if var.value == None:
-                    if not var.foreign:
-                        #this is used in index. It need to be str of lenght 32
-                        data['_relation_' + name] = ' ' * 32
-                else:
-                    data['_relation_' + name] = var.value
+                data['_relation_' + name] = var.value
 
         #-----------------------------------------------------------------------
         validateFields()

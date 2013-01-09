@@ -1,50 +1,24 @@
-from cdborm.errors import BadType, AlreadyAssigned
-from cdborm.relation.relation import LocalRelation, ForeignRelation
+from cdborm.errors import BadType
+from cdborm.relation.relation import Relation
 
-class OneToOne(LocalRelation):
 
-    def assign(self, obj, database=None):
+class OneToOne(Relation):
+
+    def assign(self, obj):
+        print 'assign', self.parent._get_full_class_name(), self.parent.id
         cls = self.related_class
         if type(obj) == cls:
-            db = self.parent._get_database(database)
-            if len(list(db.get_many(self.index_name, obj.id))) > 0:
-                raise AlreadyAssigned()
-            self.value = obj.id
+            self._to_assign = [obj]
         else:
             raise BadType()
 
     def release(self):
-        self.value = None
+        self._to_release = True
 
     def __call__(self, database=None):
-        cls = self.related_class
-        if self.value:
-            db = cls._get_database(database)
-            return cls.get(self.value, database)
+        data = super(OneToOne, self).__call__(database)
+        print 'call', data
+        if len(data) == 0:
+            return None
         else:
-            return None
-
-
-
-class OneToOneForeign(ForeignRelation):
-
-    def __call__(self, database=None):
-        def getIdOfRelatedObject(db):
-            generator = db.get_many(self.index_name, self.parent.id)
-            try:
-                all_elements = list(generator)
-            except TypeError:
-                raise RuntimeError('No element found')
-
-            if len(all_elements) > 0:
-                return all_elements[0]['_id']
-            else:
-                raise RuntimeError('No element found')
-
-        db = self.parent._get_database(database)
-        try:
-            _id = getIdOfRelatedObject(db)
-            cls = self.related_class
-            return cls.get(_id)
-        except RuntimeError:
-            return None
+            return data[0]
