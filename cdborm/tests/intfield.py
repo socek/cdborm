@@ -1,16 +1,12 @@
 from .base import CdbOrmTestCase
 from cdborm.model import Model
-from cdborm.index import BaseIndex, Index
 from cdborm.fields import IntField
 from cdborm.errors import FieldValidationError
+
 
 class MyIntModel(Model):
     first = IntField()
     second = IntField(nullable=False)
-
-@Index('MyIntModel')
-class MyModelIndex(BaseIndex):
-    clsName = 'MyIntModel'
 
 
 class IntFieldTest(CdbOrmTestCase):

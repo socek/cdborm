@@ -1,19 +1,14 @@
 from .base import CdbOrmTestCase
 from cdborm.model import Model
-from cdborm.index import BaseIndex, Index
 from cdborm.errors import BadType
 
-class MyModel(Model): pass
 
-class MySecondModel(Model): pass
+class MyModel(Model):
+    pass
 
-@Index('MyModel')
-class MyModelIndex(BaseIndex):
-    clsName = 'MyModel'
 
-@Index('MySecondModel')
-class MyModelIndex(BaseIndex):
-    clsName = 'MySecondModel'
+class MySecondModel(Model):
+    pass
 
 
 class ModelTest(CdbOrmTestCase):
@@ -77,7 +72,7 @@ class ModelTest(CdbOrmTestCase):
         Model.cache = {}
 
         data = [obj.id, obj2.id, obj3.id]
-        all_elements = [ obj.id for obj in MyModel.all() ]
+        all_elements = [obj.id for obj in MyModel.all()]
         self.assertEqual(data, all_elements)
 
     def test_remove(self):

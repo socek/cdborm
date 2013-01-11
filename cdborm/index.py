@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 from CodernityDB.database import HashIndex
 
+
 class Index(object):
     elements = []
 
@@ -9,6 +10,7 @@ class Index(object):
 
     def __call__(self, wrapped):
         self.elements.append((wrapped, self.name))
+        wrapped._name = self.name
         return wrapped
 
     @classmethod
@@ -17,52 +19,51 @@ class Index(object):
             index = indexCls(db.path, name)
             db.add_index(index)
 
-class BaseIndex(HashIndex):
-    custom_header = 'from cdborm.index import BaseIndex'
+
+@Index('type_index')
+class TypeIndex(HashIndex):
     key_format = '20s'
-    key = None
-    relation_key = None
 
     def __init__(self, *args, **kwargs):
         kwargs['key_format'] = self.key_format
-        super(BaseIndex, self).__init__(*args, **kwargs)
-
-    def _key(self):
-        if self.key:
-            return self.key
-        elif self.relation_key:
-            return '_relation_' + self.relation_key
-        else:
-            return None
+        super(TypeIndex, self).__init__(*args, **kwargs)
 
     def make_key_value(self, data):
         val = data.get('_type')
-        if val is None or val != self.clsName:
-            return None
+        if val:
+            return self.make_key(val), None
         else:
-            if self._key():
-                val = self.make_key(data.get(self._key()))
-                return self.make_key(val), None
-            else:
-                return self.make_key(val), None
+            return None
 
     def make_key(self, key):
-        if key:
-            return str(key[0:20].ljust(20, '\0'))
-        else:
-            return ' ' * 20
+        return key[0:20].ljust(20, '\0')
 
-class LinkIndex(BaseIndex):
-    custom_header = 'from cdborm.index import BaseIndex, LinkIndex'
-    clsName = 'relation link'
+
+@Index('LinkLeftIndex')
+class LinkLeftIndex(HashIndex):
+    key_format = '20s'
+    key = 'left'
+
+    def __init__(self, *args, **kwargs):
+        kwargs['key_format'] = self.key_format
+        super(LinkLeftIndex, self).__init__(*args, **kwargs)
+
+    def make_key(self, key):
+        try:
+            return str(key[0:20].ljust(20, '\0'))
+        except TypeError:
+            return '\0' * 20
 
     def make_key_value(self, data):
         val = data.get('_type')
-        if val is None or val != self.clsName:
+        if val is None or val != 'relation link':
             return None
         else:
-            if self._key():
-                val = self.make_key(data.get(self._key()))
-                return self.make_key(val), None
-            else:
-                return self.make_key(val), None
+            val = self.make_key(data.get(self.key))
+            return self.make_key(val), None
+
+
+@Index('LinkRightIndex')
+class LinkRightIndex(LinkLeftIndex):
+    custom_header = 'from cdborm.index import LinkLeftIndex'
+    key = 'right'

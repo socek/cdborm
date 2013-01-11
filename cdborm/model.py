@@ -7,6 +7,7 @@ from cdborm.relation import Relation
 
 _special_data = ['_data', '_type_version', '_get_full_class_name', '_relations']
 
+
 class Model(object):
     database = None
     _type_version = 1
@@ -15,12 +16,13 @@ class Model(object):
     def __init__(self, *args, **kwargs):
         def initVars():
             self._data = {
-                '_id' : IdField(),
-                '_rev' : RevField(),
-                '_type_version' : TypeVersionField(self._type_version),
-                '_type' : TypeField(self._get_full_class_name()),
+                '_id': IdField(),
+                '_rev': RevField(),
+                '_type_version': TypeVersionField(self._type_version),
+                '_type': TypeField(self._get_full_class_name()),
             }
             self._relations = {}
+
         def copyFieldsInstances():
             for name in dir(self):
                 value = getattr(self, name)
@@ -28,7 +30,8 @@ class Model(object):
                     self._data[name] = deepcopy(value)
                 if issubclass(value.__class__, Relation):
                     self._relations[name] = deepcopy(value)
-                    self._relations[name].parent = self
+                    self._relations[name]._init_with_parent(self)
+
         def setFields():
             for key, value in kwargs.items():
                 self[key].value = value
@@ -99,13 +102,16 @@ class Model(object):
                 ret = var.validate()
                 if not ret[0]:
                     raise FieldValidationError(self._get_full_class_name(), name, ret[1])
+
         def setType(data):
             data['_type'] = self._get_full_class_name()
             data['_type_version'] = self._type_version
+
         def setData(data):
             for name, var in self._data.items():
                 if var.value != None:
                     data[name] = var.value
+
         def setRelation(data):
             for name, var in self._relations.items():
                 data['_relation_' + name] = var.value
@@ -124,11 +130,14 @@ class Model(object):
                 return db.update(data)
             except (PreconditionsException, IndexException):
                 return db.insert(data)
+
         def update_object_from_returned_data(data):
             for name, value in data.items():
                 self._data[name].value = value
+
         def update_own_cache():
             self.cache[self.id] = self
+
         def save_relation_data(db):
             for name, var in self._relations.items():
                 var._on_save(db)
@@ -168,9 +177,11 @@ class Model(object):
         def createInCacheIfNessesery(db):
             if not _id in cls.cache:
                 cls.updateCacheFromDatabase(_id, db)
+
         def checkType():
             if cls != type(cls.cache[_id]):
                 raise BadType()
+
         def getObjectFromCache():
             return cls.cache[_id]
         #-----------------------------------------------------------------------
@@ -181,12 +192,15 @@ class Model(object):
 
     @classmethod
     def all(cls, database=None):
+        def get_all_elements(db):
+            data = []
+            for element in db.get_many(TypeIndex._name, cls._get_full_class_name()):
+                data.append(cls.get(element['_id']))
+            return data
+        #----------------------------------------------------------------------- 
+        from cdborm.index import TypeIndex
         db = cls._get_database(database)
-
-        data = []
-        for element in db.all(cls._get_full_class_name()):
-            data.append(cls.get(element['_id']))
-        return data
+        return get_all_elements(db)
 
     @classmethod
     def get_class_by_name(cls, name):
