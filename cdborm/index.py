@@ -41,7 +41,7 @@ class TypeIndex(HashIndex):
 
 @Index('LinkLeftIndex')
 class LinkLeftIndex(HashIndex):
-    key_format = '20s'
+    key_format = '32s'
     key = 'left'
 
     def __init__(self, *args, **kwargs):
@@ -50,9 +50,9 @@ class LinkLeftIndex(HashIndex):
 
     def make_key(self, key):
         try:
-            return str(key[0:20].ljust(20, '\0'))
+            return str(key[0:32].ljust(32, '\0'))
         except TypeError:
-            return '\0' * 20
+            return '\0' * 32
 
     def make_key_value(self, data):
         val = data.get('_type')
