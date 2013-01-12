@@ -1,4 +1,6 @@
 from cdborm.errors import FieldCanNotBeNull
+
+
 class Field(object):
     _value = None
 
@@ -32,6 +34,7 @@ class Field(object):
             return (False, 'This field can not be null!')
         return (True, None)
 
+
 class StringField(Field):
 
     def _setter(self, value):
@@ -42,11 +45,23 @@ class StringField(Field):
         else:
             raise ValueError(u'Value must be a string or unicode!')
 
+
 class IntField(Field):
     def _setter(self, value):
         self._value = int(value)
 
-class IdField(Field): pass
-class RevField(Field): pass
-class TypeVersionField(IntField): pass
-class TypeField(Field): pass
+
+class IdField(Field):
+    pass
+
+
+class RevField(Field):
+    pass
+
+
+class TypeVersionField(IntField):
+    pass
+
+
+class TypeField(Field):
+    pass

@@ -4,11 +4,11 @@ from cdborm.index import LinkLeftIndex, LinkRightIndex
 
 class Relation(object):
 
-    def __init__(self, class_name):
+    def __init__(self, class_name, subname=''):
         self.parent = None
         self.value = None
         self.class_name = class_name
-        self.relation_name = None
+        self.relation_name = subname
         self._to_assign = []
         self._to_release = []
 
@@ -25,7 +25,7 @@ class Relation(object):
         return sorted([class_name, self.class_name])
 
     def _get_relation_name(self, class_name):
-        return '_'.join(self._get_class_names(class_name))
+        return self.relation_name + '_'.join(self._get_class_names(class_name))
 
     def assign(self, obj):
         cls = self.related_class
@@ -42,13 +42,17 @@ class Relation(object):
         return self.parent.get_class_by_name(self.class_name)
 
     def _get_all_db_elements(self, db, _id=None):
+        def append_element_from_my_relation(element, elements):
+            if element['doc']['relation name'] == self.relation_name:
+                elements.append(element)
+        #-----------------------------------------------------------------------
         if not _id:
             _id = self.parent.id
         elements = []
         for element in db.get_many(LinkLeftIndex._name, _id, with_doc=True):
-            elements.append(element)
+            append_element_from_my_relation(element, elements)
         for element in db.get_many(LinkRightIndex._name, _id, with_doc=True):
-            elements.append(element)
+            append_element_from_my_relation(element, elements)
         return elements
 
     def _get_linked_object_from_database(self, database):
