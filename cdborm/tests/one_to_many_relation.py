@@ -1,27 +1,16 @@
 from .base import CdbOrmTestCase
 from cdborm.model import Model
-from cdborm.index import BaseIndex, Index
 from cdborm.relation import OneToMany, OneToManyList
 from cdborm.errors import CanNotOverwriteRelationVariable
 
+
 class MyOtMModel_(Model):
-    first = OneToManyList('MyOtMModel_1', 'MyOtMModel_1Foreign')
+    first = OneToManyList('MyOtMModel_1')
+
 
 class MyOtMModel_1(Model):
-    second = OneToMany('MyOtMModel_', 'MyOtMModel_1Foreign')
+    second = OneToMany('MyOtMModel_')
 
-@Index('MyOtMModel_1')
-class MyOtMModel_1Index(BaseIndex):
-    clsName = 'MyOtMModel_1'
-
-@Index('MyOtMModel_1Foreign')
-class MyOtMModel_1ForeginIndex(BaseIndex):
-    clsName = 'MyOtMModel_1'
-    relation_key = 'second'
-
-@Index('MyOtMModel_')
-class MyOtMModel_Index(BaseIndex):
-    clsName = 'MyOtMModel_'
 
 class OneToManyRelationTest(CdbOrmTestCase):
 
@@ -44,7 +33,7 @@ class OneToManyRelationTest(CdbOrmTestCase):
         one.save()
 
         self.assertEqual(one.second(), second)
-        self.assertEqual(second.first(), [one,])
+        self.assertEqual(second.first(), [one, ])
 
     def test_double_assign(self):
         second = MyOtMModel_()
@@ -59,7 +48,7 @@ class OneToManyRelationTest(CdbOrmTestCase):
         one2.save()
 
         self.assertEqual(one2.second(), second)
-        self.assertEqual(second.first(), [one,one2])
+        self.assertEqual(second.first(), [one, one2])
 
     def test_assign_and_release(self):
         second = MyOtMModel_()
@@ -69,13 +58,42 @@ class OneToManyRelationTest(CdbOrmTestCase):
         one.second.assign(second)
         one.save()
 
+        one_2 = MyOtMModel_1()
+        one_2.second.assign(second)
+        one_2.save()
+
         self.assertEqual(one.second(), second)
-        self.assertEqual(second.first(), [one,])
+        self.assertEqual(one_2.second(), second)
+        self.assertEqual(second.first(), [one, one_2])
 
         one.second.release()
         one.save()
         self.assertEqual(one.second(), None)
-        self.assertEqual(second.first(), [])
+        self.assertEqual(one_2.second(), second)
+        self.assertEqual(second.first(), [one_2])
+
+    def test_assign_and_release_from_list(self):
+        second = MyOtMModel_()
+        second.save()
+
+        one = MyOtMModel_1()
+        one.second.assign(second)
+        one.save()
+
+        one_2 = MyOtMModel_1()
+        one_2.second.assign(second)
+        one_2.save()
+
+        self.assertEqual(one.second(), second)
+        self.assertEqual(one_2.second(), second)
+        self.assertEqual(second.first(), [one, one_2])
+
+        second.first.release(one)
+        second.save()
+
+        self.assertEqual(one.second(), None)
+        self.assertEqual(one_2.second(), second)
+        self.assertEqual(second.first(), [one_2])
 
     def test_new_objects(self):
         second = MyOtMModel_()

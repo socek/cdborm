@@ -5,7 +5,7 @@ from cdborm.fields import Field, IdField, RevField, TypeField, TypeVersionField
 from cdborm.errors import BadType, FieldValidationError, CanNotOverwriteRelationVariable
 from cdborm.relation import Relation
 
-_special_data = ['_data', '_type_version', '_get_full_class_name', '_relations']
+_special_attributes = ['_data', '_type_version', '_get_full_class_name', '_relations']
 
 
 class Model(object):
@@ -41,8 +41,8 @@ class Model(object):
         setFields()
 
     def __getattribute__(self, name):
-        #we need access to _data always
-        if name in _special_data:
+        #we need access to special attributes always
+        if name in _special_attributes:
             return super(Model, self).__getattribute__(name)
 
         #if name in _data dict, then it means we want value from element in _data
@@ -61,8 +61,8 @@ class Model(object):
             except AttributeError:
                 return False
         #-----------------------------------------------------------------------
-        #we need access to _data always
-        if name in _special_data:
+        #we need access to special attributes always
+        if name in _special_attributes:
             super(Model, self).__setattr__(name, value)
 
         #if name in _data dict, then it means we want to set value from element in _data
@@ -197,7 +197,7 @@ class Model(object):
             for element in db.get_many(TypeIndex._name, cls._get_full_class_name()):
                 data.append(cls.get(element['_id']))
             return data
-        #----------------------------------------------------------------------- 
+        #-----------------------------------------------------------------------
         from cdborm.index import TypeIndex
         db = cls._get_database(database)
         return get_all_elements(db)

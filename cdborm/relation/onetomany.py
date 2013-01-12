@@ -1,22 +1,26 @@
 from cdborm.errors import BadType
 from cdborm.relation.relation import Relation
 
+
 class OneToMany(Relation):
 
     def assign(self, obj):
         cls = self.related_class
         if type(obj) == cls:
-            self.value = obj.id
+            self._to_assign = [obj]
         else:
             raise BadType()
 
-    def release(self):
-        self.value = None
+    def release(self, obj=None):
+        self._to_release = True
 
     def __call__(self, database=None):
-        cls = self.related_class
-        if self.value:
-            db = cls._get_database(database)
-            return cls.get(self.value, db)
-        else:
+        data = super(OneToMany, self).__call__(database)
+        if len(data) == 0:
             return None
+        else:
+            return data[0]
+
+
+class OneToManyList(Relation):
+    pass

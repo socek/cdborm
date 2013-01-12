@@ -4,7 +4,7 @@ from .model import ModelTest
 from .intfield import IntFieldTest
 from .stringfield import StringFieldTest
 from .one_to_one_relation import OneToOneRelationTest
-# from .one_to_many_relation import OneToManyRelationTest
+from .one_to_many_relation import OneToManyRelationTest
 # from .many_to_many_relation import ManyToManyRelationTest
 
 all_test_cases = [
@@ -12,9 +12,10 @@ all_test_cases = [
     IntFieldTest,
     StringFieldTest,
     OneToOneRelationTest,
-    # OneToManyRelationTest,
+    OneToManyRelationTest,
     # ManyToManyRelationTest,
 ]
+
 
 def get_all_test_suite():
     logging.basicConfig(level=logging.INFO, format="%(asctime)-15s:%(message)s", filename='test.log')

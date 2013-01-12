@@ -21,11 +21,3 @@ class OneToOne(Relation):
             return None
         else:
             return data[0]
-
-    def _remove_released_links(self, database, elements):
-        if self._to_release == True:
-            for element in elements:
-                database.delete(element['doc'])
-            if len(self._to_assign) > 0:
-                for element in self._get_all_db_elements(database, self._to_assign[0].id):
-                    database.delete(element['doc'])

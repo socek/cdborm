@@ -1,6 +1,7 @@
 from cdborm.errors import BadType
 from cdborm.index import LinkLeftIndex, LinkRightIndex
 
+
 class Relation(object):
 
     def __init__(self, class_name):
@@ -67,24 +68,31 @@ class Relation(object):
         hierarchy = self._get_class_names(obj.__class__.__name__)
         if hierarchy[0] == obj.__class__.__name__:
             return {
-                'left' : obj.id,
-                'right' : self.parent.id,
-                'relation name' : self.relation_name,
-                '_type' : 'relation link',
+                'left': obj.id,
+                'right': self.parent.id,
+                'relation name': self.relation_name,
+                '_type': 'relation link',
             }
         else:
             return {
-                'left' : self.parent.id,
-                'right' : obj.id,
-                'relation name' : self.relation_name,
-                '_type' : 'relation link',
+                'left': self.parent.id,
+                'right': obj.id,
+                'relation name': self.relation_name,
+                '_type': 'relation link',
             }
 
     def _remove_released_links(self, database, elements):
-        for obj in self._to_release:
-            doc = self.doc_of_obj_already_assigned(obj, elements)
-            if doc:
-                database.delete(doc)
+        if self._to_release == True:
+            for element in elements:
+                database.delete(element['doc'])
+            if len(self._to_assign) > 0:
+                for element in self._get_all_db_elements(database, self._to_assign[0].id):
+                    database.delete(element['doc'])
+        else:
+            for obj in self._to_release:
+                doc = self.doc_of_obj_already_assigned(obj, elements)
+                if doc:
+                    database.delete(doc)
 
     def doc_of_obj_already_assigned(self, obj, elements):
         for element in elements:
@@ -105,4 +113,3 @@ class Relation(object):
         elements = self._get_all_db_elements(database)
         self._remove_released_links(database, elements)
         self._save_assigned_links(database, elements)
-        
