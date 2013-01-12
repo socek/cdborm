@@ -3,11 +3,15 @@ from cdborm.model import Model
 from cdborm.fields import IntField
 from cdborm.errors import FieldValidationError
 
+_test_name = 'something'
 
 class MyIntModel(Model):
     first = IntField()
     second = IntField(nullable=False)
 
+    @property
+    def name(self):
+        return _test_name
 
 class IntFieldTest(CdbOrmTestCase):
 
@@ -51,3 +55,20 @@ class IntFieldTest(CdbOrmTestCase):
         except FieldValidationError, er:
             self.assertEqual(er.model_name, obj._get_full_class_name())
             self.assertEqual(er.field_name, 'second')
+
+    def test_initial_data(self):
+        first = 10
+        second = 15
+        obj = MyIntModel(
+            first=first,
+            second=second,
+        )
+        self.assertEqual(first, obj.first)
+        self.assertEqual(second, obj.second)
+        self.assertEqual(obj.name, _test_name)
+
+        obj.save()
+
+        self.assertEqual(first, obj.first)
+        self.assertEqual(second, obj.second)
+        self.assertEqual(obj.name, _test_name)

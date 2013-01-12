@@ -32,19 +32,18 @@ class Model(object):
                     self._relations[name] = deepcopy(value)
                     self._relations[name]._init_with_parent(self)
 
-        def setFields():
+        def setFields(kwargs):
             for key, value in kwargs.items():
                 self[key].value = value
         #-----------------------------------------------------------------------
         initVars()
         copyFieldsInstances()
-        setFields()
+        setFields(kwargs)
 
     def __getattribute__(self, name):
         #we need access to special attributes always
         if name in _special_attributes:
             return super(Model, self).__getattribute__(name)
-
         #if name in _data dict, then it means we want value from element in _data
         if name in self._data:
             return self._data[name].value
