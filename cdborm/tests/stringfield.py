@@ -3,16 +3,13 @@ from cdborm.model import Model
 from cdborm.fields import StringField
 from cdborm.errors import FieldValidationError
 
-_test_name = 'something'
-
-
 class MyStringModel(Model):
     first = StringField()
     second = StringField(nullable=False)
 
     @property
     def name(self):
-        return _test_name
+        return self.first
 
 
 class StringFieldTest(CdbOrmTestCase):
@@ -60,10 +57,10 @@ class StringFieldTest(CdbOrmTestCase):
         )
         self.assertEqual(first, obj.first)
         self.assertEqual(second, obj.second)
-        self.assertEqual(obj.name, _test_name)
+        self.assertEqual(obj.name, first)
 
         obj.save()
 
         self.assertEqual(first, obj.first)
         self.assertEqual(second, obj.second)
-        self.assertEqual(obj.name, _test_name)
+        self.assertEqual(obj.name, first)

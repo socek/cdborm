@@ -5,8 +5,6 @@ from cdborm.fields import Field, IdField, RevField, TypeField, TypeVersionField
 from cdborm.errors import BadType, FieldValidationError, CanNotOverwriteRelationVariable
 from cdborm.relation import Relation
 
-_special_attributes = ['_data', '_type_version', '_get_full_class_name', '_relations']
-
 
 class Model(object):
     database = None
@@ -25,7 +23,10 @@ class Model(object):
 
         def copyFieldsInstances():
             for name in dir(self):
-                value = getattr(self, name)
+                try:
+                    value = getattr(self, name)
+                except:
+                    continue
                 if issubclass(value.__class__, Field):
                     self._data[name] = deepcopy(value)
                 if issubclass(value.__class__, Relation):
@@ -42,7 +43,7 @@ class Model(object):
 
     def __getattribute__(self, name):
         #we need access to special attributes always
-        if name in _special_attributes:
+        if name.startswith('_'):
             return super(Model, self).__getattribute__(name)
         #if name in _data dict, then it means we want value from element in _data
         if name in self._data:
@@ -61,7 +62,7 @@ class Model(object):
                 return False
         #-----------------------------------------------------------------------
         #we need access to special attributes always
-        if name in _special_attributes:
+        if name.startswith('_'):
             super(Model, self).__setattr__(name, value)
 
         #if name in _data dict, then it means we want to set value from element in _data
