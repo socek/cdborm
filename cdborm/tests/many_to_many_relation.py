@@ -1,36 +1,15 @@
 from .base import CdbOrmTestCase
 from cdborm.model import Model
-from cdborm.index import BaseIndex, Index, LinkIndex
 from cdborm.relation import ManyToMany
-from cdborm.errors import CanNotOverwriteRelationVariable, AlreadyAssigned
+from cdborm.errors import CanNotOverwriteRelationVariable
 
 
 class MyMtMModel_2(Model):
-    first = ManyToMany('MyMtMModel_1', 'MyMtMModel_1.to.MyMtMModel_2')
+    first = ManyToMany('MyMtMModel_1')
 
 
 class MyMtMModel_1(Model):
-    second = ManyToMany('MyMtMModel_2', 'MyMtMModel_2.to.MyMtMModel_1')
-
-
-@Index('MyMtMModel_1')
-class MyMtMModel_1Index(BaseIndex):
-    clsName = 'MyMtMModel_1'
-
-
-@Index('MyMtMModel_2')
-class MyMtMModel_Index(BaseIndex):
-    clsName = 'MyMtMModel_2'
-
-
-@Index('MyMtMModel_1.to.MyMtMModel_2')
-class MyMtMModel_1ForeginIndex(LinkIndex):
-    key = 'MyMtMModel_2'
-
-
-@Index('MyMtMModel_2.to.MyMtMModel_1')
-class MyMtMModel_2ForeginIndex(LinkIndex):
-    key = 'MyMtMModel_1'
+    second = ManyToMany('MyMtMModel_2')
 
 
 class ManyToManyRelationTest(CdbOrmTestCase):
