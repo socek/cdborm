@@ -207,3 +207,7 @@ class Model(object):
         for subcls in Model.__subclasses__():
             if subcls._get_full_class_name() == name:
                 return subcls
+
+    @classmethod
+    def clear_cache(cls):
+        cls.cache.clear()
