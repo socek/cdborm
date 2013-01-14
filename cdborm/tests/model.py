@@ -85,3 +85,18 @@ class ModelTest(CdbOrmTestCase):
 
         obj.delete()
         self.assertEqual([], MyModel.all())
+
+    def test_clear_cache(self):
+        obj1 = MyModel()
+        obj1.save()
+
+        obj2 = MyModel.get(obj1.id)
+
+        MyModel.clear_cache()
+
+        obj3 = MyModel.get(obj1.id)
+        obj3.save()
+
+        self.assertEqual(id(obj1), id(obj2))
+        self.assertNotEqual(id(obj1), id(obj3))
+
