@@ -1,14 +1,20 @@
 from .base import CdbOrmTestCase
 from cdborm.model import Model
 from cdborm.errors import BadType
+from cdborm.fields import StringField, IntField
+from cdborm.relation import OneToMany, OneToManyList
 
 
 class MyModel(Model):
-    pass
+    name1 = StringField()
+    year1 = IntField()
+    rel1 = OneToMany('MySecondModel')
 
 
 class MySecondModel(Model):
-    pass
+    name2 = StringField()
+    year2 = IntField()
+    rel2 = OneToManyList('MyModel')
 
 
 class ModelTest(CdbOrmTestCase):
@@ -99,4 +105,3 @@ class ModelTest(CdbOrmTestCase):
 
         self.assertEqual(id(obj1), id(obj2))
         self.assertNotEqual(id(obj1), id(obj3))
-
