@@ -6,7 +6,6 @@ class Relation(object):
 
     def __init__(self, class_name, subname=''):
         self.parent = None
-        self.value = None
         self.class_name = class_name
         self.relation_name = subname
         self._to_assign = []

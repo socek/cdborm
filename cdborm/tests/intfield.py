@@ -55,8 +55,8 @@ class IntFieldTest(CdbOrmTestCase):
             self.assertEqual(er.field_name, 'second')
 
     def test_initial_data(self):
-        first = 10
-        second = 15
+        first = 20
+        second = 25
         obj = MyIntModel(
             first=first,
             second=second,
@@ -70,3 +70,31 @@ class IntFieldTest(CdbOrmTestCase):
         self.assertEqual(first, obj.first)
         self.assertEqual(second, obj.second)
         self.assertEqual(obj.name, first)
+
+    def test_to_dict(self):
+        first = 30
+        second = 35
+        obj = MyIntModel(
+            first=first,
+            second=second,
+        )
+
+        obj.save()
+
+        data = obj._to_dict()
+        self.assertEqual(first, data['first'])
+        self.assertEqual(second, data['second'])
+
+    def test_from_dict(self):
+        data = {
+            'first' : 45,
+            'second' : 55,
+            '_type' : MyIntModel.__name__,
+            '_type_version' : 1,
+        }
+        obj = MyIntModel.from_dict(data)
+
+        self.assertEqual(data['first'], obj.first)
+        self.assertEqual(data['second'], obj.second)
+
+

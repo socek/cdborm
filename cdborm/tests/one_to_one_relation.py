@@ -77,3 +77,32 @@ class OneToOneRelationTest(CdbOrmTestCase):
         self.assertEqual(one.second(), None)
         one.save()
         self.assertEqual(one.second(), None)
+
+    def test_to_dict(self):
+        second = MyOtOModel_2()
+        second.save()
+
+        one = MyOtOModel_1()
+        one.second.assign(second)
+        one.save()
+
+        data = second._to_dict()
+        self.assertEqual(data['_relation_first'], one.id)
+
+        data = one._to_dict()
+        self.assertEqual(data['_relation_second'], second.id)
+
+    def test_from_dict(self):
+        obj2 = MyOtOModel_2()
+        obj2.save()
+
+        data = {
+            '_relation_second' : obj2.id,
+            '_type' : MyOtOModel_1.__name__,
+            '_type_version' : 1,
+        }
+        obj1 = MyOtOModel_1.from_dict(data)
+        obj1.save()
+
+        self.assertEqual(obj1.second(), obj2)
+        self.assertEqual(obj2.first(), obj1)

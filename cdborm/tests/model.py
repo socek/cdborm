@@ -105,3 +105,12 @@ class ModelTest(CdbOrmTestCase):
 
         self.assertEqual(id(obj1), id(obj2))
         self.assertNotEqual(id(obj1), id(obj3))
+
+    def test_to_dict(self):
+        obj1 = MyModel()
+        data = obj1._to_dict()
+
+        self.assertEqual(MyModel.__name__, data['_type'])
+        self.assertEqual(1, data['_type_version'])
+        self.assertEqual(None, data['_relation_rel1'])
+

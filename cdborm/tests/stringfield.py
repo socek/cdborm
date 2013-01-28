@@ -64,3 +64,29 @@ class StringFieldTest(CdbOrmTestCase):
         self.assertEqual(first, obj.first)
         self.assertEqual(second, obj.second)
         self.assertEqual(obj.name, first)
+
+    def test_to_dict(self):
+        first = 'something 1'
+        second = 'something 2'
+        obj = MyStringModel(
+            first=first,
+            second=second,
+        )
+
+        obj.save()
+
+        data = obj._to_dict()
+        self.assertEqual(first, data['first'])
+        self.assertEqual(second, data['second'])
+
+    def test_from_dict(self):
+        data = {
+            'first' : '1 something 1',
+            'second' : '1 something 2',
+            '_type' : MyStringModel.__name__,
+            '_type_version' : 1,
+        }
+        obj = MyStringModel.from_dict(data)
+
+        self.assertEqual(data['first'], obj.first)
+        self.assertEqual(data['second'], obj.second)

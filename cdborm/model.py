@@ -42,15 +42,15 @@ class Model(object):
         setFields(kwargs)
 
     def __getattribute__(self, name):
-        #we need access to special attributes always
+        # we need access to special attributes always
         if name.startswith('_'):
             return super(Model, self).__getattribute__(name)
-        #if name in _data dict, then it means we want value from element in _data
+        # if name in _data dict, then it means we want value from element in _data
         if name in self._data:
             return self._data[name].value
         elif name in self._relations:
             return self._relations[name]
-        #else we need normal attribute from instance
+        # else we need normal attribute from instance
         else:
             return super(Model, self).__getattribute__(name)
 
@@ -61,16 +61,16 @@ class Model(object):
             except AttributeError:
                 return False
         #-----------------------------------------------------------------------
-        #we need access to special attributes always
+        # we need access to special attributes always
         if name.startswith('_'):
             super(Model, self).__setattr__(name, value)
 
-        #if name in _data dict, then it means we want to set value from element in _data
+        # if name in _data dict, then it means we want to set value from element in _data
         if name in self._data:
             self._data[name].value = value
         elif isNameInRelations(name):
             raise CanNotOverwriteRelationVariable()
-        #else we need normal attribute from instance
+        # else we need normal attribute from instance
         else:
             return super(Model, self).__setattr__(name, value)
 
@@ -84,20 +84,31 @@ class Model(object):
         except KeyError:
             return None
 
-    def _from_dict_1(self, data):
+    @classmethod
+    def _from_dict_1(cls, data):
+        obj = cls()
         for name, value in data.items():
             if name.startswith('_relation_'):
-                name = name.split('_')[2]
-                self._relations[name].value = value
+                if value:
+                    name = name.split('_')[2]
+                    if type(value) == list:
+                        for small_value in value:
+                            related_obj = obj._relations[name].related_class.get(small_value)
+                            obj._relations[name].assign(related_obj)
+                    else:
+                        related_obj = obj._relations[name].related_class.get(value)
+                        obj._relations[name].assign(related_obj)
             else:
-                self._data[name].value = value
+                obj._data[name].value = value
+        return obj
 
-    def _from_dict(self, data):
-        if data['_type'] != self._get_full_class_name():
+    @classmethod
+    def from_dict(cls, data):
+        if data['_type'] != cls._get_full_class_name():
             raise BadType()
-        getattr(self, '_from_dict_' + str(data['_type_version']))(data)
+        return getattr(cls, '_from_dict_' + str(data['_type_version']))(data)
 
-    def _to_dict(self):
+    def _to_dict(self, db=None):
         def validateFields():
             for name, var in self._data.items():
                 ret = var.validate()
@@ -115,7 +126,14 @@ class Model(object):
 
         def setRelation(data):
             for name, var in self._relations.items():
-                data['_relation_' + name] = var.value
+                objects = var(db)
+                if objects:
+                    if type(objects) == list:
+                        data['_relation_' + name] = [obj.id for obj in objects]
+                    else:
+                        data['_relation_' + name] = objects.id
+                else:
+                    data['_relation_' + name] = None
 
         #-----------------------------------------------------------------------
         validateFields()
@@ -169,8 +187,7 @@ class Model(object):
     def updateCacheFromDatabase(cls, _id, database=None):
         db = cls._get_database(database)
         data = db.get('id', _id)
-        element = cls()
-        element._from_dict(data)
+        element = cls.from_dict(data)
         cls.cache[_id] = element
 
     @classmethod
