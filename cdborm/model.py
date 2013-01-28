@@ -87,7 +87,8 @@ class Model(object):
     def _from_dict_1(self, data):
         for name, value in data.items():
             if name.startswith('_relation_'):
-                self._relation[name].value = value
+                name = name.split('_')[2]
+                self._relations[name].value = value
             else:
                 self._data[name].value = value
 
