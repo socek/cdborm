@@ -35,7 +35,17 @@ class Model(object):
 
         def setFields(kwargs):
             for key, value in kwargs.items():
-                self[key].value = value
+                if key.startswith('_relation_'):
+                    name = key.split('_')[2]
+                    if type(value) == list:
+                        for small_value in value:
+                            related_obj = self._relations[name].related_class.get(small_value)
+                            self._relations[name].assign(related_obj)
+                    else:
+                        related_obj = self._relations[name].related_class.get(value)
+                        self._relations[name].assign(related_obj)
+                else:
+                    self[key].value = value
         #-----------------------------------------------------------------------
         initVars()
         copyFieldsInstances()

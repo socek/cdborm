@@ -97,4 +97,12 @@ class IntFieldTest(CdbOrmTestCase):
         self.assertEqual(data['first'], obj.first)
         self.assertEqual(data['second'], obj.second)
 
+    def test_init(self):
+        data = {
+            'first' : 45,
+            'second' : 55,
+        }
+        obj = MyIntModel(**data)
 
+        self.assertEqual(data['first'], obj.first)
+        self.assertEqual(data['second'], obj.second)

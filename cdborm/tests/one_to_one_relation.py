@@ -106,3 +106,16 @@ class OneToOneRelationTest(CdbOrmTestCase):
 
         self.assertEqual(obj1.second(), obj2)
         self.assertEqual(obj2.first(), obj1)
+
+    def test_init(self):
+        obj2 = MyOtOModel_2()
+        obj2.save()
+
+        data = {
+            '_relation_second' : obj2.id,
+        }
+        obj1 = MyOtOModel_1(**data)
+        obj1.save()
+
+        self.assertEqual(obj1.second(), obj2)
+        self.assertEqual(obj2.first(), obj1)

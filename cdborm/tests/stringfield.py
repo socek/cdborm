@@ -3,6 +3,7 @@ from cdborm.model import Model
 from cdborm.fields import StringField
 from cdborm.errors import FieldValidationError
 
+
 class MyStringModel(Model):
     first = StringField()
     second = StringField(nullable=False)
@@ -81,12 +82,22 @@ class StringFieldTest(CdbOrmTestCase):
 
     def test_from_dict(self):
         data = {
-            'first' : '1 something 1',
-            'second' : '1 something 2',
-            '_type' : MyStringModel.__name__,
-            '_type_version' : 1,
+            'first': '1 something 1',
+            'second': '1 something 2',
+            '_type': MyStringModel.__name__,
+            '_type_version': 1,
         }
         obj = MyStringModel.from_dict(data)
+
+        self.assertEqual(data['first'], obj.first)
+        self.assertEqual(data['second'], obj.second)
+
+    def test_init(self):
+        data = {
+            'first': '1 something 1',
+            'second': '1 something 2',
+        }
+        obj = MyStringModel(**data)
 
         self.assertEqual(data['first'], obj.first)
         self.assertEqual(data['second'], obj.second)

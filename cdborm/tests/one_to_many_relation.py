@@ -150,3 +150,11 @@ class OneToManyRelationTest(CdbOrmTestCase):
         self.assertEqual(obj1.first(), [obj2,])
         self.assertEqual(obj2.second(), obj1)
 
+    def test_init(self):
+        obj2 = MyOtMModel_1()
+        obj2.save()
+
+        obj1 = MyOtMModel_(_relation_first=[obj2.id,])
+        obj1.save()
+        self.assertEqual(obj1.first(), [obj2,])
+        self.assertEqual(obj2.second(), obj1)

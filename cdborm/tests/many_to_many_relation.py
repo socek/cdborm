@@ -98,7 +98,7 @@ class ManyToManyRelationTest(CdbOrmTestCase):
         data = one._to_dict()
         self.assertEqual(data['_relation_second'], [second.id])
 
-    def test_from_dict_1(self):
+    def test_from_dict(self):
         obj2 = MyMtMModel_1()
         obj2.save()
 
@@ -108,6 +108,16 @@ class ManyToManyRelationTest(CdbOrmTestCase):
             '_type_version' : 1,
         }
         obj1 = MyMtMModel_2.from_dict(data)
+        obj1.save()
+
+        self.assertEqual(obj1.first(), [obj2,])
+        self.assertEqual(obj2.second(), [obj1,])
+
+    def test_init(self):
+        obj2 = MyMtMModel_1()
+        obj2.save()
+
+        obj1 = MyMtMModel_2(_relation_first=obj2.id)
         obj1.save()
 
         self.assertEqual(obj1.first(), [obj2,])
