@@ -49,6 +49,13 @@ class StringFieldTest(CdbOrmTestCase):
             self.assertEqual(er.model_name, obj._get_full_class_name())
             self.assertEqual(er.field_name, 'second')
 
+    def test_bad_assign(self):
+        def bad_assign(obj):
+            obj.first = 123
+        #-----------------------------------------------------------------------
+        obj = MyStringModel()
+        self.assertRaises(ValueError, bad_assign, obj)
+
     def test_initial_data(self):
         first = 'something 1'
         second = 'something 2'

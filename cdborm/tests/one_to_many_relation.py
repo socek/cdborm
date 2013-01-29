@@ -1,7 +1,7 @@
 from .base import CdbOrmTestCase
 from cdborm.model import Model
 from cdborm.relation import OneToMany, OneToManyList
-from cdborm.errors import CanNotOverwriteRelationVariable
+from cdborm.errors import CanNotOverwriteRelationVariable, BadType
 
 
 class MyOtMModel_(Model):
@@ -158,3 +158,7 @@ class OneToManyRelationTest(CdbOrmTestCase):
         obj1.save()
         self.assertEqual(obj1.first(), [obj2,])
         self.assertEqual(obj2.second(), obj1)
+
+    def test_bad_assign(self):
+        obj1 = MyOtMModel_1()
+        self.assertRaises(BadType, obj1.second.assign, obj1)

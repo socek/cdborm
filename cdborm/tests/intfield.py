@@ -51,6 +51,7 @@ class IntFieldTest(CdbOrmTestCase):
         try:
             obj.save()
         except FieldValidationError, er:
+            self.assertEqual(type(repr(er)), str)
             self.assertEqual(er.model_name, obj._get_full_class_name())
             self.assertEqual(er.field_name, 'second')
 

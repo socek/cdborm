@@ -1,7 +1,7 @@
 from .base import CdbOrmTestCase
 from cdborm.model import Model
 from cdborm.relation import OneToOne
-from cdborm.errors import CanNotOverwriteRelationVariable
+from cdborm.errors import CanNotOverwriteRelationVariable, BadType
 
 
 class MyOtOModel_2(Model):
@@ -67,6 +67,22 @@ class OneToOneRelationTest(CdbOrmTestCase):
         self.assertEqual(one.second(), None)
         self.assertEqual(second.first(), None)
 
+    def test_assign_and_release2(self):
+        one = MyOtOModel_1()
+        one.save()
+
+        second = MyOtOModel_2()
+        second.first.assign(one)
+        second.save()
+
+        self.assertEqual(one.second(), second)
+        self.assertEqual(second.first(), one)
+
+        second.first.release()
+        second.save()
+        self.assertEqual(one.second(), None)
+        self.assertEqual(second.first(), None)
+
     def test_new_objects(self):
         second = MyOtOModel_2()
         self.assertEqual(second.first(), None)
@@ -119,3 +135,7 @@ class OneToOneRelationTest(CdbOrmTestCase):
 
         self.assertEqual(obj1.second(), obj2)
         self.assertEqual(obj2.first(), obj1)
+
+    def test_bad_assign(self):
+        obj1 = MyOtOModel_2()
+        self.assertRaises(BadType, obj1.first.assign, obj1)

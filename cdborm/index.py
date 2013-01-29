@@ -20,7 +20,7 @@ class Index(object):
             db.add_index(index)
 
 
-@Index('type_index')
+@Index('TypeIndex')
 class TypeIndex(HashIndex):
     key_format = '20s'
 

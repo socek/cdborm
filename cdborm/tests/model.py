@@ -1,7 +1,7 @@
 from .base import CdbOrmTestCase
 from cdborm.model import Model
-from cdborm.errors import BadType
-from cdborm.fields import StringField, IntField
+from cdborm.errors import BadType, FieldCanNotBeNull
+from cdborm.fields import StringField, IntField, Field
 from cdborm.relation import OneToMany, OneToManyList
 
 
@@ -15,6 +15,11 @@ class MySecondModel(Model):
     name2 = StringField()
     year2 = IntField()
     rel2 = OneToManyList('MyModel')
+
+
+class MyThirdModel(Model):
+    field = Field(nullable=False)
+    nullfield = Field()
 
 
 class ModelTest(CdbOrmTestCase):
@@ -114,3 +119,22 @@ class ModelTest(CdbOrmTestCase):
         self.assertEqual(1, data['_type_version'])
         self.assertEqual(None, data['_relation_rel1'])
 
+    def test_cannotbenull(self):
+        def bad_assign():
+            obj1.field = None
+        #-----------------------------------------------------------------------
+        obj1 = MyThirdModel()
+        self.assertRaises(FieldCanNotBeNull, bad_assign)
+
+    def test_canbenull(self):
+        obj1 = MyThirdModel()
+        obj1.nullfield = None
+
+        self.assertEqual(None, obj1.nullfield)
+
+    def test_id(self):
+        obj1 = MyModel()
+        self.assertEqual(None, obj1.id)
+
+    def test_fromdict_bad(self):
+        self.assertRaises(BadType, MyModel.from_dict, {'_type' : 'bad type'})

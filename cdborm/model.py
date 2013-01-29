@@ -23,10 +23,7 @@ class Model(object):
 
         def copyFieldsInstances():
             for name in dir(self):
-                try:
-                    value = getattr(self, name)
-                except:
-                    continue
+                value = getattr(self, name)
                 if issubclass(value.__class__, Field):
                     self._data[name] = deepcopy(value)
                 if issubclass(value.__class__, Relation):
@@ -89,10 +86,7 @@ class Model(object):
 
     @property
     def id(self):
-        try:
-            return self['_id'].value
-        except KeyError:
-            return None
+        return self['_id'].value
 
     @classmethod
     def _from_dict_1(cls, data):
@@ -221,12 +215,12 @@ class Model(object):
     @classmethod
     def all(cls, database=None):
         def get_all_elements(db):
+            from cdborm.index import TypeIndex
             data = []
             for element in db.get_many(TypeIndex._name, cls._get_full_class_name()):
                 data.append(cls.get(element['_id']))
             return data
         #-----------------------------------------------------------------------
-        from cdborm.index import TypeIndex
         db = cls._get_database(database)
         return get_all_elements(db)
 

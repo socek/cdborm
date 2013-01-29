@@ -1,7 +1,7 @@
 from .base import CdbOrmTestCase
 from cdborm.model import Model
 from cdborm.relation import ManyToMany
-from cdborm.errors import CanNotOverwriteRelationVariable
+from cdborm.errors import CanNotOverwriteRelationVariable, BadType
 
 
 class MyMtMModel_2(Model):
@@ -118,6 +118,29 @@ class ManyToManyRelationTest(CdbOrmTestCase):
         obj2.save()
 
         obj1 = MyMtMModel_2(_relation_first=obj2.id)
+        obj1.save()
+
+        self.assertEqual(obj1.first(), [obj2,])
+        self.assertEqual(obj2.second(), [obj1,])
+
+    def test_bad_assign(self):
+        obj2 = MyMtMModel_1()
+        self.assertRaises(BadType, obj2.second.assign, obj2)
+
+    def test_double_assign_cross(self):
+        obj2 = MyMtMModel_1()
+        obj2.save()
+
+        obj1 = MyMtMModel_2(_relation_first=obj2.id)
+        obj1.save()
+
+        obj2.second.assign(obj1)
+        obj2.save()
+
+        self.assertEqual(obj1.first(), [obj2,])
+        self.assertEqual(obj2.second(), [obj1,])
+
+        obj1.first.assign(obj2)
         obj1.save()
 
         self.assertEqual(obj1.first(), [obj2,])
