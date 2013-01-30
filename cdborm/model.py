@@ -22,8 +22,8 @@ class Model(object):
             self._relations = {}
 
         def copyFieldsInstances():
-            for name in dir(self):
-                value = getattr(self, name)
+            for name in dir(self.__class__):
+                value = getattr(self.__class__, name)
                 if issubclass(value.__class__, Field):
                     self._data[name] = deepcopy(value)
                 if issubclass(value.__class__, Relation):
