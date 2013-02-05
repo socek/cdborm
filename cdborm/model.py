@@ -33,7 +33,7 @@ class Model(object):
         def setFields(kwargs):
             for key, value in kwargs.items():
                 if key.startswith('_relation_'):
-                    name = key.split('_')[2]
+                    name = key.split('_', 2)[2]
                     if type(value) == list:
                         for small_value in value:
                             related_obj = self._relations[name].related_class.get(small_value)
@@ -94,7 +94,7 @@ class Model(object):
         for name, value in data.items():
             if name.startswith('_relation_'):
                 if value:
-                    name = name.split('_')[2]
+                    name = name.split('_', 2)[2]
                     if type(value) == list:
                         for small_value in value:
                             related_obj = obj._relations[name].related_class.get(small_value)

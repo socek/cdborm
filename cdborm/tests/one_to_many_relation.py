@@ -5,7 +5,7 @@ from cdborm.errors import CanNotOverwriteRelationVariable, BadType
 
 
 class MyOtMModel_(Model):
-    first = OneToManyList('MyOtMModel_1')
+    first_with_underscore = OneToManyList('MyOtMModel_1')
 
 
 class MyOtMModel_1(Model):
@@ -33,7 +33,7 @@ class OneToManyRelationTest(CdbOrmTestCase):
         one.save()
 
         self.assertEqual(one.second(), second)
-        self.assertEqual(second.first(), [one, ])
+        self.assertEqual(second.first_with_underscore(), [one, ])
 
     def test_double_assign(self):
         second = MyOtMModel_()
@@ -48,7 +48,7 @@ class OneToManyRelationTest(CdbOrmTestCase):
         one2.save()
 
         self.assertEqual(one2.second(), second)
-        self.assertEqual(second.first(), [one, one2])
+        self.assertEqual(second.first_with_underscore(), [one, one2])
 
     def test_assign_and_release(self):
         second = MyOtMModel_()
@@ -64,13 +64,13 @@ class OneToManyRelationTest(CdbOrmTestCase):
 
         self.assertEqual(one.second(), second)
         self.assertEqual(one_2.second(), second)
-        self.assertEqual(second.first(), [one, one_2])
+        self.assertEqual(second.first_with_underscore(), [one, one_2])
 
         one.second.release()
         one.save()
         self.assertEqual(one.second(), None)
         self.assertEqual(one_2.second(), second)
-        self.assertEqual(second.first(), [one_2])
+        self.assertEqual(second.first_with_underscore(), [one_2])
 
     def test_assign_and_release_from_list(self):
         second = MyOtMModel_()
@@ -86,20 +86,20 @@ class OneToManyRelationTest(CdbOrmTestCase):
 
         self.assertEqual(one.second(), second)
         self.assertEqual(one_2.second(), second)
-        self.assertEqual(second.first(), [one, one_2])
+        self.assertEqual(second.first_with_underscore(), [one, one_2])
 
-        second.first.release(one)
+        second.first_with_underscore.release(one)
         second.save()
 
         self.assertEqual(one.second(), None)
         self.assertEqual(one_2.second(), second)
-        self.assertEqual(second.first(), [one_2])
+        self.assertEqual(second.first_with_underscore(), [one_2])
 
     def test_new_objects(self):
         second = MyOtMModel_()
-        self.assertEqual(second.first(), [])
+        self.assertEqual(second.first_with_underscore(), [])
         second.save()
-        self.assertEqual(second.first(), [])
+        self.assertEqual(second.first_with_underscore(), [])
 
         one = MyOtMModel_1()
         self.assertEqual(one.second(), None)
@@ -115,7 +115,7 @@ class OneToManyRelationTest(CdbOrmTestCase):
         one.save()
 
         data = second._to_dict()
-        self.assertEqual(data['_relation_first'], [one.id,])
+        self.assertEqual(data['_relation_first_with_underscore'], [one.id,])
 
         data = one._to_dict()
         self.assertEqual(data['_relation_second'], second.id)
@@ -133,30 +133,30 @@ class OneToManyRelationTest(CdbOrmTestCase):
         obj1.save()
 
         self.assertEqual(obj1.second(), obj2)
-        self.assertEqual(obj2.first(), [obj1,])
+        self.assertEqual(obj2.first_with_underscore(), [obj1,])
 
     def test_from_dict_2(self):
         obj2 = MyOtMModel_1()
         obj2.save()
 
         data = {
-            '_relation_first' : [obj2.id,],
+            '_relation_first_with_underscore' : [obj2.id,],
             '_type' : MyOtMModel_.__name__,
             '_type_version' : 1,
         }
         obj1 = MyOtMModel_.from_dict(data)
         obj1.save()
 
-        self.assertEqual(obj1.first(), [obj2,])
+        self.assertEqual(obj1.first_with_underscore(), [obj2,])
         self.assertEqual(obj2.second(), obj1)
 
     def test_init(self):
         obj2 = MyOtMModel_1()
         obj2.save()
 
-        obj1 = MyOtMModel_(_relation_first=[obj2.id,])
+        obj1 = MyOtMModel_(_relation_first_with_underscore=[obj2.id,])
         obj1.save()
-        self.assertEqual(obj1.first(), [obj2,])
+        self.assertEqual(obj1.first_with_underscore(), [obj2,])
         self.assertEqual(obj2.second(), obj1)
 
     def test_bad_assign(self):
