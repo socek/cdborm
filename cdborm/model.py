@@ -10,6 +10,7 @@ class Model(object):
     database = None
     _type_version = 1
     cache = {}
+    _locked = []
 
     def __init__(self, *args, **kwargs):
         def initVars():
@@ -50,7 +51,7 @@ class Model(object):
 
     def __getattribute__(self, name):
         # we need access to special attributes always
-        if name.startswith('_'):
+        if name.strip().startswith('_'):
             return super(Model, self).__getattribute__(name)
         # if name in _data dict, then it means we want value from element in _data
         if name in self._data:
@@ -69,7 +70,7 @@ class Model(object):
                 return False
         #-----------------------------------------------------------------------
         # we need access to special attributes always
-        if name.startswith('_'):
+        if name.strip().startswith('_'):
             super(Model, self).__setattr__(name, value)
 
         # if name in _data dict, then it means we want to set value from element in _data
@@ -90,18 +91,29 @@ class Model(object):
 
     @classmethod
     def _from_dict_1(cls, data):
+        def assign_relation(name, value):
+            # this method makes a 'lock' becouse sometimes the relation make an infinite loop
+            if not value in cls._locked:
+                cls._locked.append(value)
+
+                related_obj = obj._relations[name].related_class.get(value)
+                obj._relations[name].assign(related_obj)
+
+                cls._locked.remove(value)
+
+        def make_relation_value(name, value):
+            if value:
+                name = name.split('_', 2)[2] #get name of relation from value name
+                if type(value) == list:
+                    for small_value in value:
+                        assign_relation(name, small_value)
+                else:
+                    assign_relation(name, value)
+        #-----------------------------------------------------------------------
         obj = cls()
         for name, value in data.items():
             if name.startswith('_relation_'):
-                if value:
-                    name = name.split('_', 2)[2]
-                    if type(value) == list:
-                        for small_value in value:
-                            related_obj = obj._relations[name].related_class.get(small_value)
-                            obj._relations[name].assign(related_obj)
-                    else:
-                        related_obj = obj._relations[name].related_class.get(value)
-                        obj._relations[name].assign(related_obj)
+                make_relation_value(name, value)
             else:
                 obj._data[name].value = value
         return obj

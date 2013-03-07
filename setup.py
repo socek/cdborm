@@ -11,7 +11,7 @@ dependency_links = [
 
 if __name__ == '__main__':
     setup(name='CodernityDB-orm',
-        version='0.1.0',
+        version='0.1.1',
         description="ORM for CodernityDB.",
         author='Dominik "Socek" Długajczyk',
         author_email='msocek@gmail.com',
