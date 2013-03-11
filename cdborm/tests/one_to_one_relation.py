@@ -128,7 +128,7 @@ class OneToOneRelationTest(CdbOrmTestCase):
         obj2.save()
 
         data = {
-            '_relation_second' : obj2.id,
+            'second' : obj2,
         }
         obj1 = MyOtOModel_1(**data)
         obj1.save()

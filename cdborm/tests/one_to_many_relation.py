@@ -154,7 +154,7 @@ class OneToManyRelationTest(CdbOrmTestCase):
         obj2 = MyOtMModel_1()
         obj2.save()
 
-        obj1 = MyOtMModel_(_relation_first_with_underscore=[obj2.id,])
+        obj1 = MyOtMModel_(first_with_underscore=[obj2,])
         obj1.save()
         self.assertEqual(obj1.first_with_underscore(), [obj2,])
         self.assertEqual(obj2.second(), obj1)

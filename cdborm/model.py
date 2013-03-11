@@ -32,18 +32,24 @@ class Model(object):
                     self._relations[name]._init_with_parent(self)
 
         def setFields(kwargs):
-            for key, value in kwargs.items():
-                if key.startswith('_relation_'):
-                    name = key.split('_', 2)[2]
-                    if type(value) == list:
-                        for small_value in value:
-                            related_obj = self._relations[name].related_class.get(small_value)
-                            self._relations[name].assign(related_obj)
-                    else:
-                        related_obj = self._relations[name].related_class.get(value)
-                        self._relations[name].assign(related_obj)
+            def assign_relation_object(name, related_obj):
+                self._relations[name].assign(related_obj)
+
+            def init_relation(key, value):
+                if type(value) in [list, tuple]:
+                    for small_value in value:
+                        assign_relation_object(key, small_value)
                 else:
-                    self[key].value = value
+                    assign_relation_object(key, value)
+
+            def init_variable(key, value):
+                self[key].value = value
+            #-------------------------------------------------------------------
+            for key, value in kwargs.items():
+                if key in self._relations:
+                    init_relation(key, value)
+                else:
+                    init_variable(key, value)
         #-----------------------------------------------------------------------
         initVars()
         copyFieldsInstances()

@@ -117,7 +117,7 @@ class ManyToManyRelationTest(CdbOrmTestCase):
         obj2 = MyMtMModel_1()
         obj2.save()
 
-        obj1 = MyMtMModel_2(_relation_first=obj2.id)
+        obj1 = MyMtMModel_2(first=obj2)
         obj1.save()
 
         self.assertEqual(obj1.first(), [obj2,])
@@ -131,7 +131,7 @@ class ManyToManyRelationTest(CdbOrmTestCase):
         obj2 = MyMtMModel_1()
         obj2.save()
 
-        obj1 = MyMtMModel_2(_relation_first=obj2.id)
+        obj1 = MyMtMModel_2(first=obj2)
         obj1.save()
 
         obj2.second.assign(obj1)
