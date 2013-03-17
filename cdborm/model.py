@@ -17,8 +17,8 @@ class Model(object):
             self._data = {
                 '_id': IdField(),
                 '_rev': RevField(),
-                '_type_version': TypeVersionField(self._type_version),
-                '_type': TypeField(self._get_full_class_name()),
+                '_type_version': TypeVersionField(self),
+                '_type': TypeField(self),
             }
             self._relations = {}
 
