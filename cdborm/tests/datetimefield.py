@@ -1,17 +1,17 @@
 from .base import CdbOrmTestCase
 from cdborm.model import Model
-from cdborm.fields import DateField
+from cdborm.fields import DateTimeField
 from cdborm.errors import BadValueType
-from datetime import date
+from datetime import datetime
 
-class MyDateModel(Model):
-    first = DateField()
+class MyDateTimeModel(Model):
+    first = DateTimeField()
 
-class DateFieldTest(CdbOrmTestCase):
+class DateTimeFieldTest(CdbOrmTestCase):
 
     def test_simple_assigning(self):
-        value = date(2000, 10, 1)
-        obj = MyDateModel()
+        value = datetime(2000, 10, 1)
+        obj = MyDateTimeModel()
         obj.first = value
 
         self.assertEqual(value, obj.first)
@@ -20,24 +20,24 @@ class DateFieldTest(CdbOrmTestCase):
         def bad_assign():
             obj.first = 'aa'
 
-        obj = MyDateModel()
+        obj = MyDateTimeModel()
         self.assertRaises(BadValueType, bad_assign)
 
     def test_save_and_restore(self):
-        value = date(2000, 10, 2)
-        obj = MyDateModel()
+        value = datetime(2000, 10, 2)
+        obj = MyDateTimeModel()
         obj.first = value
         obj.save()
 
         Model.cache = {}
 
-        obj2 = MyDateModel.get(obj.id)
+        obj2 = MyDateTimeModel.get(obj.id)
 
         self.assertEqual(value, obj2.first)
 
     def test_initial_data(self):
-        first = date(2000, 10, 3)
-        obj = MyDateModel(
+        first = datetime(2000, 10, 3)
+        obj = MyDateTimeModel(
             first=first,
         )
         self.assertEqual(first, obj.first)
@@ -47,8 +47,8 @@ class DateFieldTest(CdbOrmTestCase):
         self.assertEqual(first, obj.first)
 
     def test_to_dict(self):
-        first = date(2000, 10, 4)
-        obj = MyDateModel(
+        first = datetime(2000, 10, 4)
+        obj = MyDateTimeModel(
             first=first,
         )
 
@@ -59,18 +59,18 @@ class DateFieldTest(CdbOrmTestCase):
 
     def test_from_dict(self):
         data = {
-            'first' : date(2000, 10, 5).toordinal(),
-            '_type' : MyDateModel.__name__,
+            'first' : datetime(2000, 10, 5).toordinal(),
+            '_type' : MyDateTimeModel.__name__,
             '_type_version' : 1,
         }
-        obj = MyDateModel.from_dict(data)
+        obj = MyDateTimeModel.from_dict(data)
 
-        self.assertEqual(date.fromordinal(data['first']), obj.first)
+        self.assertEqual(datetime.fromordinal(data['first']), obj.first)
 
     def test_init(self):
         data = {
-            'first' : date(2000, 10, 6),
+            'first' : datetime(2000, 10, 6),
         }
-        obj = MyDateModel(**data)
+        obj = MyDateTimeModel(**data)
 
         self.assertEqual(data['first'], obj.first)

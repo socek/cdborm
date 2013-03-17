@@ -8,6 +8,7 @@ from .one_to_many_relation import OneToManyRelationTest
 from .many_to_many_relation import ManyToManyRelationTest
 from .one_to_many_subname_relation import OneToManySubnameRelationTest
 from .datefield import DateFieldTest
+from .datetimefield import DateTimeFieldTest
 
 all_test_cases = [
     ModelTest,
@@ -18,6 +19,7 @@ all_test_cases = [
     ManyToManyRelationTest,
     OneToManySubnameRelationTest,
     DateFieldTest,
+    DateTimeFieldTest,
 ]
 
 

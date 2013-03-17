@@ -53,10 +53,12 @@ class StringField(Field):
             raise ValueError(u'Value must be a string or unicode!')
 
 
-class DateField(Field):
+class DateTimeField(Field):
+
+    _class = datetime
 
     def _setter(self, value):
-        if type(value) == date:
+        if type(value) == self._class:
             self._value = value
         else:
             raise BadValueType()
@@ -69,11 +71,13 @@ class DateField(Field):
 
     def from_simple_value(self, value):
         try:
-            self._value = date.fromordinal(value)
+            self._value = self._class.fromordinal(value)
         except AttributeError:
             return None
-        except:
-            print value
+
+
+class DateField(DateTimeField):
+    _class = date
 
 
 class IntField(Field):
