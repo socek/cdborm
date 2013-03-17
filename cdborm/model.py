@@ -121,7 +121,7 @@ class Model(object):
             if name.startswith('_relation_'):
                 make_relation_value(name, value)
             else:
-                obj._data[name].value = value
+                obj._data[name].from_simple_value(value)
         return obj
 
     @classmethod
@@ -144,7 +144,7 @@ class Model(object):
         def setData(data):
             for name, var in self._data.items():
                 if var.value != None:
-                    data[name] = var.value
+                    data[name] = var.to_simple_value()
 
         def setRelation(data):
             for name, var in self._relations.items():

@@ -1,4 +1,5 @@
-from cdborm.errors import FieldCanNotBeNull
+from cdborm.errors import FieldCanNotBeNull, BadValueType
+from datetime import datetime, date
 
 
 class Field(object):
@@ -34,6 +35,12 @@ class Field(object):
             return (False, 'This field can not be null!')
         return (True, None)
 
+    def to_simple_value(self):
+        return self._value
+
+    def from_simple_value(self, value):
+        self._value = value
+
 
 class StringField(Field):
 
@@ -44,6 +51,29 @@ class StringField(Field):
             self._value = value.decode('utf8')
         else:
             raise ValueError(u'Value must be a string or unicode!')
+
+
+class DateField(Field):
+
+    def _setter(self, value):
+        if type(value) == date:
+            self._value = value
+        else:
+            raise BadValueType()
+
+    def to_simple_value(self):
+        try:
+            return self._value.toordinal()
+        except AttributeError:
+            return None
+
+    def from_simple_value(self, value):
+        try:
+            self._value = date.fromordinal(value)
+        except AttributeError:
+            return None
+        except:
+            print value
 
 
 class IntField(Field):
