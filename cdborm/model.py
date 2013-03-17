@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-from CodernityDB.database import PreconditionsException, IndexException
+from CodernityDB.database import PreconditionsException, IndexException, RecordNotFound
 from copy import deepcopy
 from cdborm.fields import Field, IdField, RevField, TypeField, TypeVersionField
 from cdborm.errors import BadType, FieldValidationError, CanNotOverwriteRelationVariable
@@ -169,7 +169,7 @@ class Model(object):
         def insert_or_update(data, db):
             try:
                 return db.update(data)
-            except (PreconditionsException, IndexException):
+            except (PreconditionsException, IndexException, RecordNotFound):
                 return db.insert(data)
 
         def update_object_from_returned_data(data):
