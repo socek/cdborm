@@ -14,3 +14,4 @@ class FieldValidationError(Exception):
 
 class CanNotOverwriteRelationVariable(Exception): pass
 class AlreadyAssigned(Exception): pass
+class BadValueType(Exception): pass

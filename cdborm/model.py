@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-from CodernityDB.database import PreconditionsException, IndexException
+from CodernityDB.database import PreconditionsException, IndexException, RecordNotFound
 from copy import deepcopy
 from cdborm.fields import Field, IdField, RevField, TypeField, TypeVersionField
 from cdborm.errors import BadType, FieldValidationError, CanNotOverwriteRelationVariable
@@ -17,8 +17,8 @@ class Model(object):
             self._data = {
                 '_id': IdField(),
                 '_rev': RevField(),
-                '_type_version': TypeVersionField(self._type_version),
-                '_type': TypeField(self._get_full_class_name()),
+                '_type_version': TypeVersionField(self),
+                '_type': TypeField(self),
             }
             self._relations = {}
 
@@ -121,7 +121,7 @@ class Model(object):
             if name.startswith('_relation_'):
                 make_relation_value(name, value)
             else:
-                obj._data[name].value = value
+                obj._data[name].from_simple_value(value)
         return obj
 
     @classmethod
@@ -144,7 +144,7 @@ class Model(object):
         def setData(data):
             for name, var in self._data.items():
                 if var.value != None:
-                    data[name] = var.value
+                    data[name] = var.to_simple_value()
 
         def setRelation(data):
             for name, var in self._relations.items():
@@ -169,7 +169,7 @@ class Model(object):
         def insert_or_update(data, db):
             try:
                 return db.update(data)
-            except (PreconditionsException, IndexException):
+            except (PreconditionsException, IndexException, RecordNotFound):
                 return db.insert(data)
 
         def update_object_from_returned_data(data):

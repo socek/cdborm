@@ -34,34 +34,8 @@ class Field(object):
             return (False, 'This field can not be null!')
         return (True, None)
 
+    def to_simple_value(self):
+        return self._value
 
-class StringField(Field):
-
-    def _setter(self, value):
-        if type(value) == unicode:
-            self._value = value
-        elif type(value) == str:
-            self._value = value.decode('utf8')
-        else:
-            raise ValueError(u'Value must be a string or unicode!')
-
-
-class IntField(Field):
-    def _setter(self, value):
-        self._value = int(value)
-
-
-class IdField(Field):
-    pass
-
-
-class RevField(Field):
-    pass
-
-
-class TypeVersionField(IntField):
-    pass
-
-
-class TypeField(Field):
-    pass
+    def from_simple_value(self, value):
+        self._value = value
