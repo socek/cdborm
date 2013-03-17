@@ -21,6 +21,7 @@ class Model(object):
                 '_type': TypeField(self),
             }
             self._relations = {}
+            self._relations_cache = None
 
         def copyFieldsInstances():
             for name in dir(self.__class__):
@@ -91,45 +92,6 @@ class Model(object):
     def __getitem__(self, key):
         return self._data[key]
 
-    @property
-    def id(self):
-        return self['_id'].value
-
-    @classmethod
-    def _from_dict_1(cls, data):
-        def assign_relation(name, value):
-            # this method makes a 'lock' becouse sometimes the relation make an infinite loop
-            if not value in cls._locked:
-                cls._locked.append(value)
-
-                related_obj = obj._relations[name].related_class.get(value)
-                obj._relations[name].assign(related_obj)
-
-                cls._locked.remove(value)
-
-        def make_relation_value(name, value):
-            if value:
-                name = name.split('_', 2)[2] #get name of relation from value name
-                if type(value) == list:
-                    for small_value in value:
-                        assign_relation(name, small_value)
-                else:
-                    assign_relation(name, value)
-        #-----------------------------------------------------------------------
-        obj = cls()
-        for name, value in data.items():
-            if name.startswith('_relation_'):
-                make_relation_value(name, value)
-            else:
-                obj._data[name].from_simple_value(value)
-        return obj
-
-    @classmethod
-    def from_dict(cls, data):
-        if data['_type'] != cls._get_full_class_name():
-            raise BadType()
-        return getattr(cls, '_from_dict_' + str(data['_type_version']))(data)
-
     def _to_dict(self, db=None):
         def validateFields():
             for name, var in self._data.items():
@@ -167,17 +129,23 @@ class Model(object):
 
     def save(self, database=None):
         def insert_or_update(data, db):
+            from copy import copy
             try:
-                return db.update(data)
+                return db.update(copy(data))
             except (PreconditionsException, IndexException, RecordNotFound):
-                return db.insert(data)
+                if '_rev' in data:
+                    data.pop('_rev')
+                data2 = db.insert(data)
+                return data2
 
         def update_object_from_returned_data(data):
             for name, value in data.items():
                 self._data[name].value = value
 
-        def update_own_cache():
-            self.cache[self.id] = self
+        def update_own_cache(db):
+            if not id(db) in self.cache:
+                self.cache[id(db)] = {}
+            self.cache[id(db)][self.id] = self
 
         def save_relation_data(db):
             for name, var in self._relations.items():
@@ -187,12 +155,56 @@ class Model(object):
         data = self._to_dict()
         returned_data = insert_or_update(data, db)
         update_object_from_returned_data(returned_data)
-        update_own_cache()
+        update_own_cache(db)
         save_relation_data(db)
 
     def delete(self, database=None):
         db = self._get_database(database)
-        db.delete(self._to_dict())
+        db.delete(self._to_dict(db))
+
+    def _update_relation_cache(self, db):
+        for name, relation in self._relations.items():
+            print '==='
+            print relation._get_all_db_elements(db)
+
+    @property
+    def id(self):
+        return self['_id'].value
+
+    @classmethod
+    def _from_dict_1(cls, data):
+        def assign_relation(name, value):
+            # this method makes a 'lock' becouse sometimes the relation make an infinite loop
+            if not value in cls._locked:
+                cls._locked.append(value)
+
+                related_obj = obj._relations[name].related_class.get(value)
+                obj._relations[name].assign(related_obj)
+
+                cls._locked.remove(value)
+
+        def make_relation_value(name, value):
+            if value:
+                name = name.split('_', 2)[2]  # get name of relation from value name
+                if type(value) == list:
+                    for small_value in value:
+                        assign_relation(name, small_value)
+                else:
+                    assign_relation(name, value)
+        #-----------------------------------------------------------------------
+        obj = cls()
+        for name, value in data.items():
+            if name.startswith('_relation_'):
+                make_relation_value(name, value)
+            else:
+                obj._data[name].from_simple_value(value)
+        return obj
+
+    @classmethod
+    def from_dict(cls, data):
+        if data['_type'] != cls._get_full_class_name():
+            raise BadType()
+        return getattr(cls, '_from_dict_' + str(data['_type_version']))(data)
 
     @classmethod
     def _get_database(cls, database=None):
@@ -210,25 +222,27 @@ class Model(object):
         db = cls._get_database(database)
         data = db.get('id', _id)
         element = cls.from_dict(data)
-        cls.cache[_id] = element
+        if not id(db) in cls.cache:
+            cls.cache[id(db)] = {}
+        cls.cache[id(db)][_id] = element
 
     @classmethod
     def get(cls, _id, database=None):
         def createInCacheIfNessesery(db):
-            if not _id in cls.cache:
+            if not id(db) in cls.cache or not _id in cls.cache[id(db)]:
                 cls.updateCacheFromDatabase(_id, db)
 
         def checkType():
-            if cls != type(cls.cache[_id]):
+            if cls != type(cls.cache[id(db)][_id]):
                 raise BadType()
 
-        def getObjectFromCache():
-            return cls.cache[_id]
+        def getObjectFromCache(db):
+            return cls.cache[id(db)][_id]
         #-----------------------------------------------------------------------
         db = cls._get_database(database)
         createInCacheIfNessesery(db)
         checkType()
-        return getObjectFromCache()
+        return getObjectFromCache(db)
 
     @classmethod
     def all(cls, database=None):
