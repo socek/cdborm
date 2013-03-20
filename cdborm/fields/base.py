@@ -7,10 +7,6 @@ class IdField(Field):
     pass
 
 
-class RevField(Field):
-    pass
-
-
 class TypeVersionField(IntField):
 
     def _setter(self, value):

@@ -54,7 +54,7 @@ class DateFieldTest(CdbOrmTestCase):
 
         obj.save()
 
-        data = obj._to_dict()
+        data = obj._to_dict(self.db)
         self.assertEqual(first.toordinal(), data['first'])
 
     def test_from_dict(self):

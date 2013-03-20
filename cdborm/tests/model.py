@@ -29,6 +29,10 @@ class ModelTest(CdbOrmTestCase):
         obj.save()
         self.assertEqual(type(obj.id), str)
 
+        data = obj._to_dict(self.db)
+        for key in ['_type', '_type_version', '_rev', '_relation_rel1', '_id']:
+            self.assertTrue(key in data)
+
     def test_get_with_cache(self):
         obj = MyModel()
         obj.save()
@@ -113,11 +117,19 @@ class ModelTest(CdbOrmTestCase):
 
     def test_to_dict(self):
         obj1 = MyModel()
-        data = obj1._to_dict()
+        data = obj1._to_dict(self.db)
 
         self.assertEqual(MyModel.__name__, data['_type'])
         self.assertEqual(1, data['_type_version'])
         self.assertEqual(None, data['_relation_rel1'])
+
+    def test_to_dict_without_db(self):
+        obj1 = MyModel()
+        data = obj1._to_dict(None)
+
+        self.assertEqual(MyModel.__name__, data['_type'])
+        self.assertEqual(1, data['_type_version'])
+        self.assertTrue(not '_relation_rel1' in data)
 
     def test_cannotbenull(self):
         def bad_assign():
@@ -137,4 +149,4 @@ class ModelTest(CdbOrmTestCase):
         self.assertEqual(None, obj1.id)
 
     def test_fromdict_bad(self):
-        self.assertRaises(BadType, MyModel.from_dict, {'_type' : 'bad type'})
+        self.assertRaises(BadType, MyModel.from_dict, {'_type': 'bad type'})

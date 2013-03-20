@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
-from CodernityDB.database import PreconditionsException, IndexException, RecordNotFound, RevConflict
+from CodernityDB.database import PreconditionsException, IndexException, RecordNotFound
 from cdborm.errors import BadType, FieldValidationError, CanNotOverwriteRelationVariable
-from cdborm.fields import Field, IdField, RevField, TypeField, TypeVersionField
+from cdborm.fields import Field, IdField, TypeField, TypeVersionField
 from cdborm.relation import Relation
 from copy import deepcopy, copy
 
@@ -25,8 +25,6 @@ def update_or_insert(db, data):
         if '_rev' in data:
             data.pop('_rev')
         return db.insert(data)
-    except RevConflict:
-        return retrive_rev_and_save(db, data)
 
 
 class Model(object):
@@ -39,12 +37,13 @@ class Model(object):
         def initVars():
             self._data = {
                 '_id': IdField(),
-                '_rev': RevField(),
+                # '_rev': RevField(),
                 '_type_version': TypeVersionField(self),
                 '_type': TypeField(self),
             }
             self._relations = {}
             self._relations_cache = None
+            self._rev_cache = {}
 
         def copyFieldsInstances():
             for name in dir(self.__class__):
@@ -115,23 +114,27 @@ class Model(object):
     def __getitem__(self, key):
         return self._data[key]
 
-    def _to_dict(self, db=None):
+    def _to_dict(self, db):
         def validateFields():
             for name, var in self._data.items():
                 ret = var.validate()
                 if not ret[0]:
                     raise FieldValidationError(self._get_full_class_name(), name, ret[1])
 
-        def setType(data):
+        def setType(data, db):
             data['_type'] = self._get_full_class_name()
             data['_type_version'] = self._type_version
+            try:
+                data['_rev'] = self._rev_cache[id(db)]
+            except KeyError:
+                pass
 
         def setData(data):
             for name, var in self._data.items():
                 if var.value != None:
                     data[name] = var.to_simple_value()
 
-        def setRelation(data):
+        def setRelation(data, db):
             for name, var in self._relations.items():
                 objects = var(db)
                 if objects:
@@ -146,12 +149,14 @@ class Model(object):
         validateFields()
         data = {}
         setData(data)
-        setType(data)
-        setRelation(data)
+        if db:
+            setType(data, db)
+            setRelation(data, db)
         return data
 
     def save(self, database=None, raw_save=update_or_insert):
-        def update_object_from_returned_data(data):
+        def update_object_from_returned_data(data, db):
+            self._rev_cache[id(db)] = data.pop('_rev')
             for name, value in data.items():
                 self._data[name].value = value
 
@@ -165,9 +170,9 @@ class Model(object):
                 var._on_save(db)
         #-----------------------------------------------------------------------
         db = self._get_database(database)
-        data = self._to_dict()
+        data = self._to_dict(db)
         returned_data = raw_save(db, data)
-        update_object_from_returned_data(returned_data)
+        update_object_from_returned_data(returned_data, db)
         update_own_cache(db)
         save_relation_data(db)
 
@@ -210,6 +215,12 @@ class Model(object):
                     assign_relation(name, value)
         #-----------------------------------------------------------------------
         obj = cls()
+        if '_dbid' in data:
+            _dbid = data.pop('_dbid')
+            _rev = data.pop('_rev')
+            obj._rev_cache[_dbid] = _rev
+        if '_rev' in data:
+            data.pop('_rev')
         for name, value in data.items():
             if name.startswith('_relation_'):
                 make_relation_value(name, value)
@@ -238,6 +249,7 @@ class Model(object):
     def updateCacheFromDatabase(cls, _id, database=None):
         db = cls._get_database(database)
         data = db.get('id', _id)
+        data['_dbid'] = id(db)
         element = cls.from_dict(data)
         if not id(db) in cls.cache:
             cls.cache[id(db)] = {}

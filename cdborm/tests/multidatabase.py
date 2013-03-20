@@ -31,7 +31,7 @@ class MultiDatabaseTest(CdbOrmMultiDbTestCase):
         for test_obj in [obj_a, obj_b]:
             for key in ['id', 'string', 'integer']:
                 self.assertEqual(getattr(obj, key), getattr(test_obj, key))
-            self.assertNotEqual(obj['_rev'], test_obj['_rev'])
+            self.assertNotEqual(obj._rev_cache[id(self.db)], test_obj._rev_cache[id(self.db2)])
 
     def test_simple_values_copy(self):
         obj = ModelASimple()
@@ -52,7 +52,7 @@ class MultiDatabaseTest(CdbOrmMultiDbTestCase):
         for test_obj in [obj_a, obj_b]:
             for key in ['id', 'string', 'integer']:
                 self.assertEqual(getattr(obj, key), getattr(test_obj, key))
-            self.assertNotEqual(obj['_rev'], test_obj['_rev'])
+            self.assertNotEqual(obj._rev_cache[id(self.db)], test_obj._rev_cache[id(self.db2)])
 
     def test_simple_values_copy2(self):
         obj = ModelASimple()
@@ -73,4 +73,4 @@ class MultiDatabaseTest(CdbOrmMultiDbTestCase):
         for test_obj in [obj_a, obj_b]:
             for key in ['id', 'string', 'integer']:
                 self.assertEqual(getattr(obj, key), getattr(test_obj, key))
-            self.assertNotEqual(obj['_rev'], test_obj['_rev'])
+            self.assertNotEqual(obj._rev_cache[id(self.db)], test_obj._rev_cache[id(self.db2)])

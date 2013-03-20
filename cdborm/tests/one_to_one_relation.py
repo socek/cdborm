@@ -102,10 +102,10 @@ class OneToOneRelationTest(CdbOrmTestCase):
         one.second.assign(second)
         one.save()
 
-        data = second._to_dict()
+        data = second._to_dict(self.db)
         self.assertEqual(data['_relation_first'], one.id)
 
-        data = one._to_dict()
+        data = one._to_dict(self.db)
         self.assertEqual(data['_relation_second'], second.id)
 
     def test_from_dict(self):

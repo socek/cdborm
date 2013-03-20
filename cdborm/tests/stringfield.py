@@ -83,7 +83,7 @@ class StringFieldTest(CdbOrmTestCase):
 
         obj.save()
 
-        data = obj._to_dict()
+        data = obj._to_dict(self.db)
         self.assertEqual(first, data['first'])
         self.assertEqual(second, data['second'])
 
