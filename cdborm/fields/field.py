@@ -4,10 +4,11 @@ from cdborm.errors import FieldCanNotBeNull
 class Field(object):
     _value = None
 
-    def __init__(self, value=None, nullable=True):
+    def __init__(self, value=None, nullable=True, default=None):
         self._nullable = nullable
         if value:
             self.value = value
+        self.default = default
 
     @property
     def value(self):
@@ -39,3 +40,8 @@ class Field(object):
 
     def from_simple_value(self, value):
         self._value = value
+
+    def make_default(self, parent):
+        if self.value is None and self.default:
+            self.value = self.default(self, parent)
+

@@ -4,8 +4,20 @@ from cdborm.fields import DateField
 from cdborm.errors import BadValueType
 from datetime import date
 
+_default_value = date.today()
+_default_value2 = date(2001, 1, 2)
+
+
+def make_default(value, parent):
+    return _default_value
+
+
 class MyDateModel(Model):
     first = DateField()
+    second = DateField()
+    third = DateField(default=make_default)
+    fourth = DateField(_default_value2)
+
 
 class DateFieldTest(CdbOrmTestCase):
 
@@ -59,9 +71,9 @@ class DateFieldTest(CdbOrmTestCase):
 
     def test_from_dict(self):
         data = {
-            'first' : date(2000, 10, 5).toordinal(),
-            '_type' : MyDateModel.__name__,
-            '_type_version' : 1,
+            'first': date(2000, 10, 5).toordinal(),
+            '_type': MyDateModel.__name__,
+            '_type_version': 1,
         }
         obj = MyDateModel.from_dict(data)
 
@@ -69,8 +81,13 @@ class DateFieldTest(CdbOrmTestCase):
 
     def test_init(self):
         data = {
-            'first' : date(2000, 10, 6),
+            'first': date(2000, 10, 6),
         }
         obj = MyDateModel(**data)
 
         self.assertEqual(data['first'], obj.first)
+
+    def test_default(self):
+        obj = MyDateModel()
+        self.assertEqual(_default_value, obj.third)
+        self.assertEqual(_default_value2, obj.fourth)

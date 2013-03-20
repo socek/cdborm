@@ -73,10 +73,14 @@ class Model(object):
                     init_relation(key, value)
                 else:
                     init_variable(key, value)
+        def makeDefaults():
+            for key, var in self._data.items():
+                var.make_default(self)
         #-----------------------------------------------------------------------
         initVars()
         copyFieldsInstances()
         setFields(kwargs)
+        makeDefaults()
 
     def __getattribute__(self, name):
         # we need access to special attributes always

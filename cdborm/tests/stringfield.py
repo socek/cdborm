@@ -3,10 +3,18 @@ from cdborm.model import Model
 from cdborm.fields import StringField
 from cdborm.errors import FieldValidationError
 
+_default_value = 'default test'
+_default_value2 = 'default static'
+
+def make_default(value, parent):
+    return _default_value
+
 
 class MyStringModel(Model):
     first = StringField()
     second = StringField(nullable=False)
+    third = StringField(default=make_default)
+    fourth = StringField(_default_value2)
 
     @property
     def name(self):
@@ -108,3 +116,8 @@ class StringFieldTest(CdbOrmTestCase):
 
         self.assertEqual(data['first'], obj.first)
         self.assertEqual(data['second'], obj.second)
+
+    def test_default(self):
+        obj = MyStringModel()
+        self.assertEqual(_default_value, obj.third)
+        self.assertEqual(_default_value2, obj.fourth)

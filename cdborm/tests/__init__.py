@@ -27,7 +27,7 @@ all_test_cases = [
     MultiDatabaseTest,
     MultiDatabaseO2OTest,
     MultiDatabaseO2MTest,
-    MultiDatabaseM2MTest
+    MultiDatabaseM2MTest,
 ]
 
 

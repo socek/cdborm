@@ -150,3 +150,20 @@ class ModelTest(CdbOrmTestCase):
 
     def test_fromdict_bad(self):
         self.assertRaises(BadType, MyModel.from_dict, {'_type': 'bad type'})
+
+    def test_update_or_insert(self):
+        from cdborm.model import update_or_insert
+
+        data = {'data' : 1}
+        ret = update_or_insert(self.db, data)
+        data.update(ret)
+        _id = data['_id']
+        ret = self.db.get('id', _id, with_doc=True)
+        self.assertEqual(data, ret)
+
+        data.pop('_id')
+        ret = update_or_insert(self.db, data)
+
+        data1 = self.db.get('id', _id, with_doc=True)
+        data2 = self.db.get('id', ret['_id'], with_doc=True)
+        self.assertEqual(data1['data'], data2['data'])

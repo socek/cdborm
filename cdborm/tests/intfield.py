@@ -3,13 +3,23 @@ from cdborm.model import Model
 from cdborm.fields import IntField
 from cdborm.errors import FieldValidationError
 
+_default_value = 1
+_default_value2 = 2
+
+def make_default(value, parent):
+    return _default_value
+
+
 class MyIntModel(Model):
     first = IntField()
     second = IntField(nullable=False)
+    third = IntField(default=make_default)
+    fourth = IntField(_default_value2)
 
     @property
     def name(self):
         return self.first
+
 
 class IntFieldTest(CdbOrmTestCase):
 
@@ -88,10 +98,10 @@ class IntFieldTest(CdbOrmTestCase):
 
     def test_from_dict(self):
         data = {
-            'first' : 45,
-            'second' : 55,
-            '_type' : MyIntModel.__name__,
-            '_type_version' : 1,
+            'first': 45,
+            'second': 55,
+            '_type': MyIntModel.__name__,
+            '_type_version': 1,
         }
         obj = MyIntModel.from_dict(data)
 
@@ -100,10 +110,15 @@ class IntFieldTest(CdbOrmTestCase):
 
     def test_init(self):
         data = {
-            'first' : 45,
-            'second' : 55,
+            'first': 45,
+            'second': 55,
         }
         obj = MyIntModel(**data)
 
         self.assertEqual(data['first'], obj.first)
         self.assertEqual(data['second'], obj.second)
+
+    def test_default(self):
+        obj = MyIntModel()
+        self.assertEqual(_default_value, obj.third)
+        self.assertEqual(_default_value2, obj.fourth)

@@ -14,16 +14,10 @@ class DateTimeField(Field):
             raise BadValueType()
 
     def to_simple_value(self):
-        try:
-            return self._value.toordinal()
-        except AttributeError:
-            return None
+        return self._value.toordinal()
 
     def from_simple_value(self, value):
-        try:
-            self._value = self._class.fromordinal(value)
-        except AttributeError:
-            return None
+        self._value = self._class.fromordinal(value)
 
 
 class DateField(DateTimeField):
