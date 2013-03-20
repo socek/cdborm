@@ -1,4 +1,5 @@
-from CodernityDB.database import Database, DatabasePathException
+from CodernityDB.database import DatabasePathException
+from CodernityDB.database_thread_safe import ThreadSafeDatabase
 from cdborm.model import Model
 from cdborm.index import Index
 
@@ -7,7 +8,7 @@ def create_db(database):
     Index.createAllIndexes(database)
 
 def connec_to_database(path, set_as_default_db=False):
-    database = Database(path)
+    database = ThreadSafeDatabase(path)
     inited = False
 
     try:

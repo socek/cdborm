@@ -1,9 +1,32 @@
 # -*- encoding: utf-8 -*-
-from CodernityDB.database import PreconditionsException, IndexException, RecordNotFound
-from copy import deepcopy
-from cdborm.fields import Field, IdField, RevField, TypeField, TypeVersionField
+from CodernityDB.database import PreconditionsException, IndexException, RecordNotFound, RevConflict
 from cdborm.errors import BadType, FieldValidationError, CanNotOverwriteRelationVariable
+from cdborm.fields import Field, IdField, RevField, TypeField, TypeVersionField
 from cdborm.relation import Relation
+from copy import deepcopy, copy
+
+
+def retrive_rev_and_save(db, data):
+    _id = data['_id']
+    try:
+        dbdata = db.get('id', _id)
+        data['_rev'] = dbdata['_rev']
+        return db.update(data)
+    except RecordNotFound:
+        if '_rev' in data:
+            data.pop('_rev')
+        return db.insert(data)
+
+
+def update_or_insert(db, data):
+    try:
+        return db.update(copy(data))
+    except (PreconditionsException, IndexException, RecordNotFound):
+        if '_rev' in data:
+            data.pop('_rev')
+        return db.insert(data)
+    except RevConflict:
+        return retrive_rev_and_save(db, data)
 
 
 class Model(object):
@@ -127,17 +150,7 @@ class Model(object):
         setRelation(data)
         return data
 
-    def save(self, database=None):
-        def insert_or_update(data, db):
-            from copy import copy
-            try:
-                return db.update(copy(data))
-            except (PreconditionsException, IndexException, RecordNotFound):
-                if '_rev' in data:
-                    data.pop('_rev')
-                data2 = db.insert(data)
-                return data2
-
+    def save(self, database=None, raw_save=update_or_insert):
         def update_object_from_returned_data(data):
             for name, value in data.items():
                 self._data[name].value = value
@@ -153,7 +166,7 @@ class Model(object):
         #-----------------------------------------------------------------------
         db = self._get_database(database)
         data = self._to_dict()
-        returned_data = insert_or_update(data, db)
+        returned_data = raw_save(db, data)
         update_object_from_returned_data(returned_data)
         update_own_cache(db)
         save_relation_data(db)
@@ -162,10 +175,14 @@ class Model(object):
         db = self._get_database(database)
         db.delete(self._to_dict(db))
 
-    def _update_relation_cache(self, db):
-        for name, relation in self._relations.items():
-            print '==='
-            print relation._get_all_db_elements(db)
+    def copy_to_db(self, to_db, relation_db=None):
+        self.save(to_db, retrive_rev_and_save)
+        if relation_db:
+            for name, relation in self._relations.items():
+                data = relation._get_all_db_elements(relation_db)
+                for element in data:
+                    data = element['doc']
+                    retrive_rev_and_save(to_db, data)
 
     @property
     def id(self):

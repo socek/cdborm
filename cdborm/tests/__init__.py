@@ -7,9 +7,12 @@ from .one_to_one_relation import OneToOneRelationTest
 from .one_to_many_relation import OneToManyRelationTest
 from .many_to_many_relation import ManyToManyRelationTest
 from .one_to_many_subname_relation import OneToManySubnameRelationTest
-from .multidatabase import MultiDatabaseTest
 from .datefield import DateFieldTest
 from .datetimefield import DateTimeFieldTest
+from .multidatabase import MultiDatabaseTest
+from .multidatabase_o2o import MultiDatabaseO2OTest
+from .multidatabase_o2m import MultiDatabaseO2MTest
+from .multidatabase_m2m import MultiDatabaseM2MTest
 
 all_test_cases = [
     ModelTest,
@@ -22,6 +25,9 @@ all_test_cases = [
     DateFieldTest,
     DateTimeFieldTest,
     MultiDatabaseTest,
+    MultiDatabaseO2OTest,
+    MultiDatabaseO2MTest,
+    MultiDatabaseM2MTest
 ]
 
 

@@ -1,3 +1,4 @@
+from CodernityDB.database import RecordNotFound
 from cdborm.errors import BadType
 from cdborm.index import LinkLeftIndex, LinkRightIndex
 
@@ -40,7 +41,7 @@ class Relation(object):
     def related_class(self):
         return self.parent.get_class_by_name(self.class_name)
 
-    def _get_all_db_elements(self, db, _id=None):
+    def _get_all_db_elements(self, database, _id=None):
         def append_element_from_my_relation(element, elements):
             if element['doc']['relation name'] == self.relation_name:
                 elements.append(element)
@@ -48,9 +49,9 @@ class Relation(object):
         if not _id:
             _id = self.parent.id
         elements = []
-        for element in db.get_many(LinkLeftIndex._name, _id, with_doc=True):
+        for element in database.get_many(LinkLeftIndex._name, _id, with_doc=True):
             append_element_from_my_relation(element, elements)
-        for element in db.get_many(LinkRightIndex._name, _id, with_doc=True):
+        for element in database.get_many(LinkRightIndex._name, _id, with_doc=True):
             append_element_from_my_relation(element, elements)
         return elements
 
@@ -58,9 +59,12 @@ class Relation(object):
         elements = self._get_all_db_elements(database)
         data = []
         for element in elements:
-            data.append(
-                self.related_class.get(element['doc'][self.foreign_class_nickname])
-            )
+            try:
+                data.append(
+                    self.related_class.get(element['doc'][self.foreign_class_nickname], database)
+                )
+            except RecordNotFound:
+                pass
         return data
 
     def __call__(self, database=None):
