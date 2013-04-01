@@ -3,8 +3,8 @@ from cdborm.model import Model
 from cdborm.fields import ListField
 from cdborm.errors import FieldValidationError
 
-_default_value = [1,]
-_default_value2 = (2,)
+_default_value = [1,2,]
+_default_value2 = (2,3,)
 
 def make_default(value, parent):
     return _default_value
@@ -24,7 +24,7 @@ class MyListModel(Model):
 class ListFieldTest(CdbOrmTestCase):
 
     def test_simple_assigning(self):
-        value = [3,]
+        value = [3,4]
         obj = MyListModel()
         obj.first = value
 
@@ -38,7 +38,7 @@ class ListFieldTest(CdbOrmTestCase):
         self.assertRaises(ValueError, bad_assign)
 
     def test_save_and_restore(self):
-        value = [4,]
+        value = [4,5]
         obj = MyListModel()
         obj.second = value
         obj.save()
@@ -60,8 +60,8 @@ class ListFieldTest(CdbOrmTestCase):
             self.assertEqual(er.field_name, 'second')
 
     def test_initial_data(self):
-        first = [5,]
-        second = [6,]
+        first = [5,6]
+        second = [6,7]
         obj = MyListModel(
             first=first,
             second=second,
@@ -77,8 +77,8 @@ class ListFieldTest(CdbOrmTestCase):
         self.assertEqual(obj.name, first)
 
     def test_to_dict(self):
-        first = [7,]
-        second = [8,]
+        first = [7,8]
+        second = [8,9]
         obj = MyListModel(
             first=first,
             second=second,
@@ -92,8 +92,8 @@ class ListFieldTest(CdbOrmTestCase):
 
     def test_from_dict(self):
         data = {
-            'first': [9,],
-            'second': [10,],
+            'first': [9,10],
+            'second': [10,11],
             '_type': MyListModel.__name__,
             '_type_version': 1,
         }
@@ -104,8 +104,8 @@ class ListFieldTest(CdbOrmTestCase):
 
     def test_init(self):
         data = {
-            'first': [11,],
-            'second': [12,],
+            'first': [11,12],
+            'second': [12,13],
         }
         obj = MyListModel(**data)
 

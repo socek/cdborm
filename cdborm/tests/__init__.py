@@ -3,6 +3,7 @@ import logging
 from .model import ModelTest
 from .intfield import IntFieldTest
 from .stringfield import StringFieldTest
+from .listfield import ListFieldTest
 from .one_to_one_relation import OneToOneRelationTest
 from .one_to_many_relation import OneToManyRelationTest
 from .many_to_many_relation import ManyToManyRelationTest
@@ -28,6 +29,7 @@ all_test_cases = [
     MultiDatabaseO2OTest,
     MultiDatabaseO2MTest,
     MultiDatabaseM2MTest,
+    ListFieldTest,
 ]
 
 
