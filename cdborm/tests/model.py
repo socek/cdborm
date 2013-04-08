@@ -3,6 +3,7 @@ from cdborm.model import Model
 from cdborm.errors import BadType, FieldCanNotBeNull
 from cdborm.fields import StringField, IntField, Field
 from cdborm.relation import OneToMany, OneToManyList
+from CodernityDB.database import RecordDeleted
 
 
 class MyModel(Model):
@@ -95,11 +96,13 @@ class ModelTest(CdbOrmTestCase):
 
         obj = MyModel()
         obj.save()
+        _id = obj.id
 
         self.assertEqual([obj], MyModel.all())
 
         obj.delete()
         self.assertEqual([], MyModel.all())
+        self.assertRaises(RecordDeleted, MyModel.get, _id)
 
     def test_clear_cache(self):
         obj1 = MyModel()
@@ -154,7 +157,7 @@ class ModelTest(CdbOrmTestCase):
     def test_update_or_insert(self):
         from cdborm.model import update_or_insert
 
-        data = {'data' : 1}
+        data = {'data': 1}
         ret = update_or_insert(self.db, data)
         data.update(ret)
         _id = data['_id']

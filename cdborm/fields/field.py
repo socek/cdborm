@@ -1,4 +1,5 @@
 from cdborm.errors import FieldCanNotBeNull
+from copy import copy
 
 
 class Field(object):
@@ -7,7 +8,7 @@ class Field(object):
     def __init__(self, value=None, nullable=True, default=None):
         self._nullable = nullable
         if value:
-            self.value = value
+            self.value = copy(value)
         self.default = default
 
     @property
@@ -43,5 +44,7 @@ class Field(object):
 
     def make_default(self, parent):
         if self.value is None and self.default:
-            self.value = self.default(self, parent)
-
+            try:
+                self.value = self.default(self, parent)
+            except TypeError:
+                self.value = self.default()

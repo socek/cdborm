@@ -5,20 +5,30 @@ from cdborm.errors import FieldValidationError
 
 _default_value = 1
 _default_value2 = 2
+_default_value3 = 3
 
 def make_default(value, parent):
     return _default_value
 
+def make_default_no_args():
+    return _default_value3
+
+def make_bad_default(one):
+    return 4
 
 class MyIntModel(Model):
     first = IntField()
     second = IntField(nullable=False)
     third = IntField(default=make_default)
     fourth = IntField(_default_value2)
+    five = IntField(default=make_default_no_args)
 
     @property
     def name(self):
         return self.first
+
+class MyIntModelBadDefault(Model):
+    bad = IntField(default=make_bad_default)
 
 
 class IntFieldTest(CdbOrmTestCase):
@@ -122,3 +132,7 @@ class IntFieldTest(CdbOrmTestCase):
         obj = MyIntModel()
         self.assertEqual(_default_value, obj.third)
         self.assertEqual(_default_value2, obj.fourth)
+        self.assertEqual(_default_value3, obj.five)
+
+    def test_bad_default(self):
+        self.assertRaises(TypeError, MyIntModelBadDefault)

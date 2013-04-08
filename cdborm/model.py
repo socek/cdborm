@@ -182,7 +182,10 @@ class Model(object):
 
     def delete(self, database=None):
         db = self._get_database(database)
-        db.delete(self._to_dict(db))
+        data = self._to_dict(db)
+        db.delete(data)
+        _id = data['_id']
+        self.cache[id(db)].pop(_id)
 
     def copy_to_db(self, to_db, relation_db=None):
         self.save(to_db, retrive_rev_and_save)

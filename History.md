@@ -1,4 +1,4 @@
-0.1.1 / 2013-?-?
+0.2.0 / 2013-?-?
 ==================
 
   * Added multidatabase support
@@ -7,6 +7,8 @@
   * Init now expects objects for relation, not id's.
   * Fixed choosing wrong database in Model.all
   * get, all and save no raises NoDatabaseSelected when database == None.
+  * default now can be used with 2 arguments or no arguments
+  * fixed removing elements from databas (remove now delete element from cache)
 
 0.1.0 / 2012-12-15
 ==================
