@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-from CodernityDB.database import PreconditionsException, IndexException, RecordNotFound
+from CodernityDB.database import PreconditionsException, IndexException, RecordNotFound, RecordDeleted
 from cdborm.errors import BadType, FieldValidationError, CanNotOverwriteRelationVariable, NoDbSelected
 from cdborm.fields import Field, IdField, TypeField, TypeVersionField
 from cdborm.relation import Relation
@@ -12,7 +12,7 @@ def retrive_rev_and_save(db, data):
         dbdata = db.get('id', _id)
         data['_rev'] = dbdata['_rev']
         return db.update(data)
-    except RecordNotFound:
+    except (RecordNotFound, RecordDeleted):
         if '_rev' in data:
             data.pop('_rev')
         return db.insert(data)
@@ -21,7 +21,7 @@ def retrive_rev_and_save(db, data):
 def update_or_insert(db, data):
     try:
         return db.update(copy(data))
-    except (PreconditionsException, IndexException, RecordNotFound):
+    except (PreconditionsException, IndexException, RecordNotFound, RecordDeleted):
         if '_rev' in data:
             data.pop('_rev')
         return db.insert(data)
@@ -73,6 +73,7 @@ class Model(object):
                     init_relation(key, value)
                 else:
                     init_variable(key, value)
+
         def makeDefaults():
             for key, var in self._data.items():
                 var.make_default(self)
