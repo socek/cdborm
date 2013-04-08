@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 from CodernityDB.database import PreconditionsException, IndexException, RecordNotFound
-from cdborm.errors import BadType, FieldValidationError, CanNotOverwriteRelationVariable
+from cdborm.errors import BadType, FieldValidationError, CanNotOverwriteRelationVariable, NoDbSelected
 from cdborm.fields import Field, IdField, TypeField, TypeVersionField
 from cdborm.relation import Relation
 from copy import deepcopy, copy
@@ -240,10 +240,12 @@ class Model(object):
 
     @classmethod
     def _get_database(cls, database=None):
-        if database:
+        if database is not None:
             return database
-        else:
+        elif cls.database is not None:
             return cls.database
+        else:
+            raise NoDbSelected()
 
     @classmethod
     def _get_full_class_name(cls):
