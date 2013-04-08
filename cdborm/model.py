@@ -283,7 +283,7 @@ class Model(object):
             from cdborm.index import TypeIndex
             data = []
             for element in db.get_many(TypeIndex._name, cls._get_full_class_name()):
-                data.append(cls.get(element['_id']))
+                data.append(cls.get(element['_id'], db))
             return data
         #-----------------------------------------------------------------------
         db = cls._get_database(database)
