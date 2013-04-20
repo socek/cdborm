@@ -1,8 +1,12 @@
-from .base import CdbOrmTestCase
-from cdborm.model import Model
-from cdborm.fields import DateTimeField
-from cdborm.errors import BadValueType
 from datetime import datetime
+
+from dateutil import parser
+
+from .base import CdbOrmTestCase
+from cdborm.errors import BadValueType
+from cdborm.fields import DateTimeField
+from cdborm.model import Model
+
 
 _default_value = datetime.now()
 _default_value2 = datetime(2000, 10, 1, 1, 1, 1)
@@ -17,6 +21,7 @@ class MyDateTimeModel(Model):
     second = DateTimeField()
     third = DateTimeField(default=make_default)
     fourth = DateTimeField(_default_value2)
+
 
 class DateTimeFieldTest(CdbOrmTestCase):
 
@@ -66,17 +71,17 @@ class DateTimeFieldTest(CdbOrmTestCase):
         obj.save()
 
         data = obj._to_dict(self.db)
-        self.assertEqual(first.toordinal(), data['first'])
+        self.assertEqual(first.isoformat(), data['first'])
 
     def test_from_dict(self):
         data = {
-            'first': datetime(2000, 10, 5).toordinal(),
+            'first': datetime(2000, 10, 5).isoformat(),
             '_type': MyDateTimeModel.__name__,
             '_type_version': 1,
         }
         obj = MyDateTimeModel.from_dict(data)
 
-        self.assertEqual(datetime.fromordinal(data['first']), obj.first)
+        self.assertEqual(parser.parse(data['first']), obj.first)
 
     def test_init(self):
         data = {

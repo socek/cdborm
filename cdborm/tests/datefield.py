@@ -3,6 +3,7 @@ from cdborm.model import Model
 from cdborm.fields import DateField
 from cdborm.errors import BadValueType
 from datetime import date
+from dateutil import parser
 
 _default_value = date.today()
 _default_value2 = date(2001, 1, 2)
@@ -67,17 +68,17 @@ class DateFieldTest(CdbOrmTestCase):
         obj.save()
 
         data = obj._to_dict(self.db)
-        self.assertEqual(first.toordinal(), data['first'])
+        self.assertEqual(first.isoformat(), data['first'])
 
     def test_from_dict(self):
         data = {
-            'first': date(2000, 10, 5).toordinal(),
+            'first': date(2000, 10, 5).isoformat(),
             '_type': MyDateModel.__name__,
             '_type_version': 1,
         }
         obj = MyDateModel.from_dict(data)
 
-        self.assertEqual(date.fromordinal(data['first']), obj.first)
+        self.assertEqual(parser.parse(data['first']).date(), obj.first)
 
     def test_init(self):
         data = {
