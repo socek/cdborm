@@ -202,25 +202,25 @@ class Model(object):
         return self['_id'].value
 
     @classmethod
-    def _from_dict_1(cls, data):
-        def assign_relation(name, value):
+    def _from_dict_1(cls, data, database):
+        def assign_relation(name, value, database):
             # this method makes a 'lock' becouse sometimes the relation make an infinite loop
             if not value in cls._locked:
                 cls._locked.append(value)
 
-                related_obj = obj._relations[name].related_class.get(value)
+                related_obj = obj._relations[name].related_class.get(value, database)
                 obj._relations[name].assign(related_obj)
 
                 cls._locked.remove(value)
 
-        def make_relation_value(name, value):
+        def make_relation_value(name, value, database):
             if value:
                 name = name.split('_', 2)[2]  # get name of relation from value name
                 if type(value) == list:
                     for small_value in value:
-                        assign_relation(name, small_value)
+                        assign_relation(name, small_value, database)
                 else:
-                    assign_relation(name, value)
+                    assign_relation(name, value, database)
         #-----------------------------------------------------------------------
         obj = cls()
         if '_dbid' in data:
@@ -231,16 +231,16 @@ class Model(object):
             data.pop('_rev')
         for name, value in data.items():
             if name.startswith('_relation_'):
-                make_relation_value(name, value)
+                make_relation_value(name, value, database)
             else:
                 obj._data[name].from_simple_value(value)
         return obj
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data, database=None):
         if data['_type'] != cls._get_full_class_name():
             raise BadType()
-        return getattr(cls, '_from_dict_' + str(data['_type_version']))(data)
+        return getattr(cls, '_from_dict_' + str(data['_type_version']))(data, database)
 
     @classmethod
     def _get_database(cls, database=None):
@@ -260,7 +260,7 @@ class Model(object):
         db = cls._get_database(database)
         data = db.get('id', _id)
         data['_dbid'] = id(db)
-        element = cls.from_dict(data)
+        element = cls.from_dict(data, db)
         if not id(db) in cls.cache:
             cls.cache[id(db)] = {}
         cls.cache[id(db)][_id] = element
