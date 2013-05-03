@@ -3,6 +3,7 @@ from setuptools import setup, find_packages
 
 install_requires = [
     'CodernityDB',
+    'python-dateutil',
 ]
 
 dependency_links = [
