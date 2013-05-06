@@ -27,7 +27,41 @@ def update_or_insert(db, data):
         return db.insert(data)
 
 
+class ModelType(type):
+
+    def __init__(cls, name, bases, dct):
+        def generate_field_property(name):
+            def field_fget(self):
+                return self._data[name].value
+
+            def field_fset(self, value):
+                self._data[name].value = value
+            return property(field_fget, field_fset)
+
+        def generate_relation_property(name):
+            def relation_fget(self):
+                return self._relations[name]
+
+            def relation_fset(self, value):
+                raise CanNotOverwriteRelationVariable()
+            return property(relation_fget, relation_fset)
+
+        cls._field_classes = {}
+        cls._relation_classes = {}
+        for name in dir(cls):
+            value = getattr(cls, name)
+            if issubclass(value.__class__, Field):
+                cls._field_classes[name] = value
+                setattr(cls, name, generate_field_property(name))
+
+            if issubclass(value.__class__, Relation):
+                cls._relation_classes[name] = value
+                setattr(cls, name, generate_relation_property(name))
+        super(ModelType, cls).__init__(name, bases, dct)
+
+
 class Model(object):
+    __metaclass__ = ModelType
     database = None
     _type_version = 1
     cache = {}
@@ -37,7 +71,6 @@ class Model(object):
         def initVars():
             self._data = {
                 '_id': IdField(),
-                # '_rev': RevField(),
                 '_type_version': TypeVersionField(self),
                 '_type': TypeField(self),
             }
@@ -46,13 +79,12 @@ class Model(object):
             self._rev_cache = {}
 
         def copyFieldsInstances():
-            for name in dir(self.__class__):
-                value = getattr(self.__class__, name)
-                if issubclass(value.__class__, Field):
-                    self._data[name] = deepcopy(value)
-                if issubclass(value.__class__, Relation):
-                    self._relations[name] = deepcopy(value)
-                    self._relations[name]._init_with_parent(self)
+            for name, field in self._field_classes.items():
+                self._data[name] = deepcopy(field)
+
+            for name, relation in self._relation_classes.items():
+                self._relations[name] = deepcopy(relation)
+                self._relations[name]._init_with_parent(self)
 
         def setFields(kwargs):
             def assign_relation_object(name, related_obj):
@@ -82,39 +114,6 @@ class Model(object):
         copyFieldsInstances()
         setFields(kwargs)
         makeDefaults()
-
-    def __getattribute__(self, name):
-        # we need access to special attributes always
-        if name.strip().startswith('_'):
-            return super(Model, self).__getattribute__(name)
-        # if name in _data dict, then it means we want value from element in _data
-        if name in self._data:
-            return self._data[name].value
-        elif name in self._relations:
-            return self._relations[name]
-        # else we need normal attribute from instance
-        else:
-            return super(Model, self).__getattribute__(name)
-
-    def __setattr__(self, name, value):
-        def isNameInRelations(name):
-            try:
-                return name in self._relations
-            except AttributeError:
-                return False
-        #-----------------------------------------------------------------------
-        # we need access to special attributes always
-        if name.strip().startswith('_'):
-            super(Model, self).__setattr__(name, value)
-
-        # if name in _data dict, then it means we want to set value from element in _data
-        if name in self._data:
-            self._data[name].value = value
-        elif isNameInRelations(name):
-            raise CanNotOverwriteRelationVariable()
-        # else we need normal attribute from instance
-        else:
-            return super(Model, self).__setattr__(name, value)
 
     def __getitem__(self, key):
         return self._data[key]
