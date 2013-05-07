@@ -1,25 +1,10 @@
 from cdborm.errors import FieldCanNotBeNull
 from copy import copy
 
-
-class Field(object):
-    _value = None
-
-    def __init__(self, value=None, nullable=True, default=None):
-        self._nullable = nullable
-        if value:
-            self.value = copy(value)
-        self.default = default
-
-    @property
-    def value(self):
+def value():
+    def fget(self):
         return self._getter()
-
-    def _getter(self):
-        return self._value
-
-    @value.setter
-    def value(self, value):
+    def fset(self, value):
         if self._nullable and value == None:
             self._value = None
         else:
@@ -27,6 +12,20 @@ class Field(object):
                 raise FieldCanNotBeNull()
             else:
                 self._setter(value)
+    return locals()
+
+class Field(object):
+    _value = None
+    value = property(**value())
+
+    def __init__(self, value=None, nullable=True, default=None):
+        self._nullable = nullable
+        if value:
+            self.value = copy(value)
+        self.default = default
+
+    def _getter(self):
+        return self._value
 
     def _setter(self, value):
         self._value = value

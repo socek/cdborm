@@ -70,13 +70,13 @@ class Model(object):
     def __init__(self, *args, **kwargs):
         def initVars():
             self._relations = {}
-            self._data = {
-                '_id': IdField(),
-                '_type_version': TypeVersionField(self),
-                '_type': TypeField(self),
-            }
+            self._data = {}
             self._relations_cache = None
             self._rev_cache = {}
+        def initFields():
+            self._data['_id'] = IdField()
+            self._data['_type_version'] = TypeVersionField(self)
+            self._data['_type'] = TypeField(self)
 
         def copyFieldsInstances():
             for name, field in self._field_classes.items():
@@ -112,6 +112,7 @@ class Model(object):
         #-----------------------------------------------------------------------
         initVars()
         copyFieldsInstances()
+        initFields()
         setFields(kwargs)
         makeDefaults()
 
