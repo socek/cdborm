@@ -69,12 +69,12 @@ class Model(object):
 
     def __init__(self, *args, **kwargs):
         def initVars():
+            self._relations = {}
             self._data = {
                 '_id': IdField(),
                 '_type_version': TypeVersionField(self),
                 '_type': TypeField(self),
             }
-            self._relations = {}
             self._relations_cache = None
             self._rev_cache = {}
 
