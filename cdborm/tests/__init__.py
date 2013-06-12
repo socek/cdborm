@@ -15,6 +15,7 @@ from .multidatabase_o2o import MultiDatabaseO2OTest
 from .multidatabase_o2m import MultiDatabaseO2MTest
 from .multidatabase_m2m import MultiDatabaseM2MTest
 from .no_init_db import NoInitDbTest
+from .enumfield import EnumFieldTest
 
 all_test_cases = [
     ModelTest,
@@ -32,6 +33,7 @@ all_test_cases = [
     MultiDatabaseM2MTest,
     ListFieldTest,
     NoInitDbTest,
+    EnumFieldTest,
 ]
 
 

@@ -4,3 +4,5 @@ from .date import DateField, DateTimeField
 from .int import IntField
 from .base import IdField, TypeVersionField, TypeField
 from .list import ListField
+from .enum import EnumField
+from .float import FloatField
