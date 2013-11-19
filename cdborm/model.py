@@ -42,12 +42,24 @@ class ModelType(type):
             def relation_fget(self):
                 return self._relations[name]
 
+            def relation_fset_mockable(self, value):
+                self._relations[name] = value
+
             def relation_fset(self, value):
                 raise CanNotOverwriteRelationVariable()
-            return property(relation_fget, relation_fset)
 
-        cls._field_classes = {}
-        cls._relation_classes = {}
+            if dct.get('mockable', False):
+                return property(relation_fget, relation_fset_mockable)
+            else:
+                return property(relation_fget, relation_fset)
+
+        cls._field_classes = copy(cls._field_classes)
+        cls._relation_classes = copy(cls._relation_classes)
+        cls._inherited_relations = copy(cls._inherited_relations)
+
+        for name in cls._inherited_relations:
+            setattr(cls, name, generate_relation_property(name))
+
         for name in dir(cls):
             value = getattr(cls, name)
             if issubclass(value.__class__, Field):
@@ -57,6 +69,7 @@ class ModelType(type):
             if issubclass(value.__class__, Relation):
                 cls._relation_classes[name] = value
                 setattr(cls, name, generate_relation_property(name))
+                cls._inherited_relations.append(name)
         super(ModelType, cls).__init__(name, bases, dct)
 
 
@@ -66,6 +79,9 @@ class Model(object):
     _type_version = 1
     cache = {}
     _locked = []
+    _field_classes = {}
+    _relation_classes = {}
+    _inherited_relations = []
 
     def __init__(self, *args, **kwargs):
         def initVars():
@@ -73,6 +89,7 @@ class Model(object):
             self._data = {}
             self._relations_cache = None
             self._rev_cache = {}
+
         def initFields():
             self._data['_id'] = IdField()
             self._data['_type_version'] = TypeVersionField(self)
@@ -99,7 +116,7 @@ class Model(object):
 
             def init_variable(key, value):
                 self[key].value = value
-            #-------------------------------------------------------------------
+            #------------------------------------------------------------------
             for key, value in kwargs.items():
                 if key in self._relations:
                     init_relation(key, value)
@@ -109,7 +126,7 @@ class Model(object):
         def makeDefaults():
             for key, var in self._data.items():
                 var.make_default(self)
-        #-----------------------------------------------------------------------
+        #----------------------------------------------------------------------
         initVars()
         copyFieldsInstances()
         initFields()
@@ -124,7 +141,8 @@ class Model(object):
             for name, var in self._data.items():
                 ret = var.validate()
                 if not ret[0]:
-                    raise FieldValidationError(self._get_full_class_name(), name, ret[1])
+                    raise FieldValidationError(
+                        self._get_full_class_name(), name, ret[1])
 
         def setType(data, db):
             data['_type'] = self._get_full_class_name()
@@ -150,7 +168,7 @@ class Model(object):
                 else:
                     data['_relation_' + name] = None
 
-        #-----------------------------------------------------------------------
+        #----------------------------------------------------------------------
         validateFields()
         data = {}
         setData(data)
@@ -173,7 +191,7 @@ class Model(object):
         def save_relation_data(db):
             for name, var in self._relations.items():
                 var._on_save(db)
-        #-----------------------------------------------------------------------
+        #----------------------------------------------------------------------
         db = self._get_database(database)
         data = self._to_dict(db)
         returned_data = raw_save(db, data)
@@ -204,24 +222,27 @@ class Model(object):
     @classmethod
     def _from_dict_1(cls, data, database):
         def assign_relation(name, value, database):
-            # this method makes a 'lock' becouse sometimes the relation make an infinite loop
+            # this method makes a 'lock' becouse sometimes the relation make an
+            # infinite loop
             if not value in cls._locked:
                 cls._locked.append(value)
 
-                related_obj = obj._relations[name].related_class.get(value, database)
+                related_obj = obj._relations[
+                    name].related_class.get(value, database)
                 obj._relations[name].assign(related_obj)
 
                 cls._locked.remove(value)
 
         def make_relation_value(name, value, database):
             if value:
-                name = name.split('_', 2)[2]  # get name of relation from value name
+                # get name of relation from value name
+                name = name.split('_', 2)[2]
                 if type(value) == list:
                     for small_value in value:
                         assign_relation(name, small_value, database)
                 else:
                     assign_relation(name, value, database)
-        #-----------------------------------------------------------------------
+        #----------------------------------------------------------------------
         obj = cls()
         if '_dbid' in data:
             _dbid = data.pop('_dbid')
@@ -277,7 +298,7 @@ class Model(object):
 
         def getObjectFromCache(db):
             return cls.cache[id(db)][_id]
-        #-----------------------------------------------------------------------
+        #----------------------------------------------------------------------
         db = cls._get_database(database)
         createInCacheIfNessesery(db)
         checkType()
@@ -291,7 +312,7 @@ class Model(object):
             for element in db.get_many(TypeIndex._name, cls._get_full_class_name()):
                 data.append(cls.get(element['_id'], db))
             return data
-        #-----------------------------------------------------------------------
+        #----------------------------------------------------------------------
         db = cls._get_database(database)
         return get_all_elements(db)
 
