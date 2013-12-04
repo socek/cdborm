@@ -136,7 +136,7 @@ class Model(object):
     def __getitem__(self, key):
         return self._data[key]
 
-    def _to_dict(self, db):
+    def _to_dict(self, db=None):
         def validateFields():
             for name, var in self._data.items():
                 ret = var.validate()
